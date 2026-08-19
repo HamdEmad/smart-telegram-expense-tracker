@@ -1,0 +1,24 @@
+# Environment variables & secrets
+.env
+.env.*
+*.env
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & IDE settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs & temporary files
+*.log
+logs/
+temp/
+tmp/
+
+# n8n local data (if running locally)
+.n8n/

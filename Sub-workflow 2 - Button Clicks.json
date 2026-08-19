@@ -1,0 +1,548 @@
+{
+  "name": "Sub-workflow 2 - Button Clicks",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        32
+      ],
+      "id": "ca9fd35b-d4d0-49bc-b865-86ece7c64603",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resource": "callback",
+        "queryId": "={{ $json.callback_query.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -432,
+        32
+      ],
+      "id": "22229cdd-6795-4239-84f6-a15f6be6fedd",
+      "name": "Answer Query a callback",
+      "webhookId": "7e5f27b3-25bb-41ac-9b6a-2dde8971e0cd"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "confirm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d74f7912-f9bb-47a5-ba1f-1ffa80d501b8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "confirm"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "41a91afc-bbd4-4fae-837d-eb318004f9ef",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "cancel",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "cancel"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        32
+      ],
+      "id": "3c3cd3ae-f50e-4616-af54-a645cfc2d564",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.chat.id }}",
+        "messageId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.message_id }}",
+        "text": "✅ تم تأكيد العملية وحفظها بنجاح!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        -64
+      ],
+      "id": "6e09bbe7-1daf-48d8-9827-4f3753fa04ef",
+      "name": "Edit a text message",
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputJson = $('When Executed by Another Workflow').first().json;\n\nif (!inputJson.callback_query || !inputJson.callback_query.data) {\n    throw new Error(\"لم يتم العثور على بيانات الزر في العقدة الأولى.\");\n}\n\n// البيانات القادمة هي مثل \"confirm_261\"\nconst rawData = inputJson.callback_query.data;\n\nconst underscoreIndex = rawData.indexOf('_');\nconst actionName = rawData.substring(0, underscoreIndex); // \"confirm\" أو \"cancel\"\nconst rowId = rawData.substring(underscoreIndex + 1);     // \"261\"\n\n// إخراج البيانات مع تسمية المتغير row_id\nreturn {\n    json: {\n        action: actionName,\n        row_id: rowId\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        32
+      ],
+      "id": "a12cdd14-29da-41ca-9c27-75b1a4bfa419",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "Confirmed",
+            "row_id": "",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "row_id",
+              "displayName": "row_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "direction",
+              "displayName": "direction",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "transaction_type",
+              "displayName": "transaction_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "currency",
+              "displayName": "currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "entity",
+              "displayName": "entity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "batch_id",
+              "displayName": "batch_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        -64
+      ],
+      "id": "79d822d2-d425-43f2-afa6-7c138400d959",
+      "name": "Update row in sheet"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
+        "startIndex": "={{ $json.row_number }}",
+        "numberToDelete": 50
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        128
+      ],
+      "id": "6a9d7c80-e357-4873-9a97-b3b5441f4e61",
+      "name": "Delete rows or columns from sheet"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        -64
+      ],
+      "id": "554699c9-8f35-4d40-a74b-cbca90267376",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        128
+      ],
+      "id": "20dfc981-cdb6-4d0e-8155-95017380dc7c",
+      "name": "Get row(s) in sheet2"
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.chat.id }}",
+        "messageId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.message_id }}",
+        "text": "تم إلغاء العملية بنجاح ❌",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        128
+      ],
+      "id": "e6179134-c07c-4f15-9cf3-22b87feff29c",
+      "name": "Edit a text message1",
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Answer Query a callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer Query a callback": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet": {
+      "main": [
+        [
+          {
+            "node": "Edit a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "078c9698-f71d-491f-b34e-f741e169ca9c",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "ikMlD79lGBACQ1rE",
+  "tags": []
+}
