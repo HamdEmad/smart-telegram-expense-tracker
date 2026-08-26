@@ -45,7 +45,13 @@
         -128
       ],
       "id": "c54cfd14-09cc-4b64-8877-e1d70b32adf5",
-      "name": "Message a model"
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OLkFIn8LAQhjPlRy",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
     },
     {
       "parameters": {
@@ -99,7 +105,13 @@
       ],
       "id": "eb92532b-459e-4071-b568-f7d7fd296d05",
       "name": "Send a text message",
-      "webhookId": "e669440c-807c-4df2-a1e9-aa9e285f9e9a"
+      "webhookId": "e669440c-807c-4df2-a1e9-aa9e285f9e9a",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -181,7 +193,13 @@
       ],
       "id": "f77765a9-6e41-4c2f-8a90-e749322d4ca1",
       "name": "Send a text message1",
-      "webhookId": "76783d0b-5b38-42a5-9f8f-97b7d5e051cc"
+      "webhookId": "76783d0b-5b38-42a5-9f8f-97b7d5e051cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -373,7 +391,13 @@
         -32
       ],
       "id": "a33da9fc-eac0-4e69-b33e-e83f8ff7fa82",
-      "name": "Append row in sheet"
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -482,7 +506,13 @@
       ],
       "id": "b57546cc-9c60-4a93-914f-c38ae9223199",
       "name": "Get a file",
-      "webhookId": "684af1af-ec35-4c5e-9f1a-efcbe0cb6af6"
+      "webhookId": "684af1af-ec35-4c5e-9f1a-efcbe0cb6af6",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -505,7 +535,13 @@
         64
       ],
       "id": "edcfb9d9-9b8d-40f0-ba4a-4bdf493eb4e7",
-      "name": "Analyze audio"
+      "name": "Analyze audio",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OLkFIn8LAQhjPlRy",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
     },
     {
       "parameters": {
@@ -534,7 +570,13 @@
       ],
       "id": "9e299d1b-23cc-4908-a21a-3d830f41252e",
       "name": "Get a file1",
-      "webhookId": "589fa804-5d92-4942-9149-c90343eae2bd"
+      "webhookId": "589fa804-5d92-4942-9149-c90343eae2bd",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -557,7 +599,13 @@
         256
       ],
       "id": "2c7f8ad1-7581-4f02-bb91-b9759f60c517",
-      "name": "Analyze an image"
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OLkFIn8LAQhjPlRy",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -718,7 +766,8 @@
   },
   "versionId": "456d252c-0ae8-43ed-9d40-5e98f137733d",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "607c5f893829d27f4d8318b7189f3b509dcc8d0109d9791972a74e1ebe2d91d3"
   },
   "nodeGroups": [],
   "id": "L6QM02nO3EMi24E7",

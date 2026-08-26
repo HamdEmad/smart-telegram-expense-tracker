@@ -17,7 +17,13 @@
       ],
       "id": "9195ac46-e2bf-41fd-94d0-fd5f8ff34375",
       "name": "Telegram Trigger",
-      "webhookId": "be10c594-f481-4d22-9c56-af6cd23ba6cc"
+      "webhookId": "be10c594-f481-4d22-9c56-af6cd23ba6cc",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -185,7 +191,8 @@
   },
   "versionId": "e00cd0fc-6871-421d-a8e2-7a07253c67d6",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "607c5f893829d27f4d8318b7189f3b509dcc8d0109d9791972a74e1ebe2d91d3"
   },
   "nodeGroups": [],
   "id": "64I2lzgLHxdEbcLY",

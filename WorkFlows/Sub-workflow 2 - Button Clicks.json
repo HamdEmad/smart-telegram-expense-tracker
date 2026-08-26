@@ -28,7 +28,13 @@
       ],
       "id": "22229cdd-6795-4239-84f6-a15f6be6fedd",
       "name": "Answer Query a callback",
-      "webhookId": "7e5f27b3-25bb-41ac-9b6a-2dde8971e0cd"
+      "webhookId": "7e5f27b3-25bb-41ac-9b6a-2dde8971e0cd",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -112,7 +118,13 @@
       ],
       "id": "6e09bbe7-1daf-48d8-9827-4f3753fa04ef",
       "name": "Edit a text message",
-      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0"
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
@@ -309,7 +321,13 @@
         -64
       ],
       "id": "79d822d2-d425-43f2-afa6-7c138400d959",
-      "name": "Update row in sheet"
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -338,7 +356,13 @@
         128
       ],
       "id": "6a9d7c80-e357-4873-9a97-b3b5441f4e61",
-      "name": "Delete rows or columns from sheet"
+      "name": "Delete rows or columns from sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -373,7 +397,13 @@
         -64
       ],
       "id": "554699c9-8f35-4d40-a74b-cbca90267376",
-      "name": "Get row(s) in sheet"
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -408,7 +438,13 @@
         128
       ],
       "id": "20dfc981-cdb6-4d0e-8155-95017380dc7c",
-      "name": "Get row(s) in sheet2"
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -426,7 +462,13 @@
       ],
       "id": "e6179134-c07c-4f15-9cf3-22b87feff29c",
       "name": "Edit a text message1",
-      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0"
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -540,7 +582,8 @@
   },
   "versionId": "078c9698-f71d-491f-b34e-f741e169ca9c",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "607c5f893829d27f4d8318b7189f3b509dcc8d0109d9791972a74e1ebe2d91d3"
   },
   "nodeGroups": [],
   "id": "ikMlD79lGBACQ1rE",
