@@ -7,12 +7,79 @@
       },
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.2,
-      "position": [
-        0,
-        64
-      ],
+      "position": [0, 64],
       "id": "c5093ad3-b595-4316-8edd-fb4fce9cbf6e",
       "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 3},
+                "conditions": [{"leftValue": "={{ $json.message.text }}", "rightValue": "", "operator": {"type": "string", "operation": "exists", "singleValue": true}, "id": "55d9fe88-acd9-4f34-aa26-81e3ae5b49fe"}],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 3},
+                "conditions": [{"id": "a0fcba01-d755-45b3-a251-38879bc08d7d", "leftValue": "={{ $json.message.voice }}", "rightValue": "", "operator": {"type": "object", "operation": "exists", "singleValue": true}}],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            },
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 3},
+                "conditions": [{"id": "bfa4dec6-9d4a-4561-a0e7-6953f5685a8c", "leftValue": "={{ $json.message.photo[0] }}", "rightValue": "", "operator": {"type": "object", "operation": "exists", "singleValue": true}}],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "photo"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [224, 48],
+      "id": "74b48aee-265d-40e6-8cf3-18951aa88958",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [448, 64],
+      "id": "b57546cc-9c60-4a93-914f-c38ae9223199",
+      "name": "Get a file",
+      "webhookId": "684af1af-ec35-4c5e-9f1a-efcbe0cb6af6",
+      "credentials": {"telegramApi": {"id": "HigQWEeF62DPQciI", "name": "Telegram account"}}
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo.slice(-1)[0].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [448, 256],
+      "id": "9e299d1b-23cc-4908-a21a-3d830f41252e",
+      "name": "Get a file1",
+      "webhookId": "589fa804-5d92-4942-9149-c90343eae2bd",
+      "credentials": {"telegramApi": {"id": "HigQWEeF62DPQciI", "name": "Telegram account"}}
     },
     {
       "parameters": {
@@ -25,7 +92,7 @@
         "messages": {
           "values": [
             {
-              "content": "=أنت مساعد مالي ذكي متخصص في تحليل الرسائل النصية للمشتريات وتحويلها إلى مصفوفة (Array) بصيغة JSON دقيقة فقط، دون أي نصوص إضافية أو شرح.\n\nيجب عليك استخراج كل عنصر قام المستخدم بشرائه ككائن (Object) منفصل داخل المصفوفة، وتعبئة الحقول التالية بدقة:\n\n- `item_name` (نص): اسم المنتج أو الصنف الأساسي مجرداً فقط (مثال: \"فول\", \"جبنة موتزاريلا\", \"بطاطس\").\n- `notes` (نص): الوصف الكامل كما ذكره المستخدم، بما في ذلك نوع العبوة أو تفاصيل السعر (مثال: \"2 علبة فول\", \"الكيلو بـ 50 جنيه\").\n- `amount` (رقم): التكلفة الإجمالية للصنف. إذا ذكر المستخدم سعر الوحدة والكمية، قم بضربهم لاستخراج الإجمالي.\n- `quantity` (رقم): العدد أو الكمية التي تم شراؤها. إذا لم تذكر، القيمة الافتراضية هي 1.\n- `currency` (نص): العملة المستخدمة. الافتراضي هو \"EGP\" (أو استخرجها إذا تم تحديدها مثل SAR أو USD).\n- `entity` (نص): مكان الشراء أو البائع (مثال: \"السوق\", \"جوملا ماركت\"). الافتراضي هو \"Unspecified\".\n- `category` (نص): التصنيف المالي للمصروفات (مثال: \"Groceries\", \"Food & Dining\", \"Health\").\n- `payment_method` (نص): طريقة الدفع (مثال: \"Cash\", \"Credit Card\"). الافتراضي هو \"Cash\" ما لم يذكر غير ذلك.\n- `direction` (نص): دائماً قيمتها \"Expense\".\n- `transaction_type` (نص): دائماً قيمتها \"Payment\".\n- `status` (نص): دائماً قيمتها \"Pending\".\n- `date` (نص): تاريخ المعاملة بصيغة YYYY-MM-DD. استخدم تاريخ اليوم ما لم يذكر المستخدم غير ذلك.\n\nقواعد صارمة:\n1. يجب أن يكون الإخراج مصفوفة JSON فقط [ { ... }, { ... } ].\n2. لا تكتب أي نصوص توضيحية قبل أو بعد كود الـ JSON.\n\nمثال للمدخلات: \"اشتريت 2 علبة فول العلبة ب 15 و1 جبنة موتزاريلا ب 90 من السوق\"\nمثال للمخرجات المطلوبة:\n[\n  {\n    \"item_name\": \"فول\",\n    \"notes\": \"2 علبة فول العلبة ب 15\",\n    \"amount\": 30,\n    \"quantity\": 2,\n    \"currency\": \"EGP\",\n    \"entity\": \"السوق\",\n    \"category\": \"Groceries\",\n    \"payment_method\": \"Cash\",\n    \"direction\": \"Expense\",\n    \"transaction_type\": \"Payment\",\n    \"status\": \"Pending\",\n    \"date\": \"2026-08-15\"\n  },\n  {\n    \"item_name\": \"جبنة موتزاريلا\",\n    \"notes\": \"1 جبنة موتزاريلا ب 90\",\n    \"amount\": 90,\n    \"quantity\": 1,\n    \"currency\": \"EGP\",\n    \"entity\": \"السوق\",\n    \"category\": \"Groceries\",\n    \"payment_method\": \"Cash\",\n    \"direction\": \"Expense\",\n    \"transaction_type\": \"Payment\",\n    \"status\": \"Pending\",\n    \"date\": \"2026-08-15\"\n  }\n]",
+              "content": "You are a smart Life OS Assistant. Your task is to analyze the user's message and extract structured data as a JSON array ONLY — no extra text, no explanations, no markdown.\n\n## Strict Rules\n1. Output must be a JSON array only: [ { ... } ]\n2. Do NOT write anything before or after the JSON\n3. Every message belongs to exactly ONE type: Expense, Gym, Quran, or Task\n4. The \"status\" field is always \"Pending\" unless clarification is needed\n5. The \"date\" field must be in YYYY-MM-DD format. Use today's date if not mentioned\n6. If the message is unclear or missing required info, return:\n   [{\"record_type\": \"any\", \"status\": \"clarification_needed\", \"message\": \"<ask the user what info is missing>\"}]\n\n---\n\n## Category Detection & JSON Schemas\n\n### Expense\nArabic triggers: اشتريت، دفعت، صرفت، فاتورة، جنيه، ريال، دولار، كام، بكام، سعر\nEnglish triggers: bought, spent, paid, cost, price, bill, receipt\n\nSchema (one object per distinct item):\n{\"record_type\": \"Expense\", \"item_name\": \"clean product name\", \"notes\": \"full user description\", \"amount\": 0, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"store name or Unspecified\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: Calculate total if unit price x quantity given. Default currency: EGP. Default payment_method: Cash.\n\n### Gym\nArabic triggers: جيم، تمرين، سيت، تكرار، رياضة، اشتغلت، عملت، كيلو، وزن\nEnglish triggers: gym, workout, exercise, sets, reps, kg, lbs, bench press, squat, deadlift, pull-up\n\nSchema (one object per exercise):\n{\"record_type\": \"Gym\", \"exercise_name\": \"Exercise Name in English\", \"muscle_group\": \"Chest/Back/Legs/Shoulders/Arms/Core\", \"sets\": 0, \"reps\": 0, \"weight\": 0, \"weight_unit\": \"kg\", \"notes\": \"full description\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: Each exercise = separate object. Infer muscle_group from exercise name. Default weight_unit: kg.\n\n### Quran\nArabic triggers: قرآن، قرأت، ورد، سورة، آية، ختمة، حزب، جزء، صفحة\nEnglish triggers: quran, surah, ayah, recite, verse, page\n\nSchema:\n{\"record_type\": \"Quran\", \"surah_name\": \"Arabic surah name\", \"surah_number\": 0, \"start_ayah\": 0, \"end_ayah\": 0, \"pages_read\": 0, \"notes\": \"\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: If ayah range not mentioned set start_ayah and end_ayah to 0. If pages_read not mentioned set to 0.\n\n### Task\nArabic triggers: مهمة، task، اعمل، لازم، محتاج، تذكير، راجع، خلصت، اتكلم\nEnglish triggers: task, todo, reminder, need to, must, should, call, review, finish\n\nSchema:\n{\"record_type\": \"Task\", \"task_description\": \"clear task description\", \"priority\": \"High/Medium/Low\", \"due_date\": \"YYYY-MM-DD or Unspecified\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: Default priority: Medium. Default due_date: Unspecified.\n\n---\n\n## Examples\n\nInput: \"اشتريت حليب بـ 20 جنيه وعيش بـ 10 من المخبز\"\nOutput:\n[{\"record_type\": \"Expense\", \"item_name\": \"حليب\", \"notes\": \"حليب بـ 20 جنيه\", \"amount\": 20, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"المخبز\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}, {\"record_type\": \"Expense\", \"item_name\": \"عيش\", \"notes\": \"عيش بـ 10\", \"amount\": 10, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"المخبز\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nInput: \"I did 4 sets of bench press 80kg 10 reps and 3 sets of squats 100kg 8 reps\"\nOutput:\n[{\"record_type\": \"Gym\", \"exercise_name\": \"Bench Press\", \"muscle_group\": \"Chest\", \"sets\": 4, \"reps\": 10, \"weight\": 80, \"weight_unit\": \"kg\", \"notes\": \"4 sets bench press 80kg 10 reps\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}, {\"record_type\": \"Gym\", \"exercise_name\": \"Squats\", \"muscle_group\": \"Legs\", \"sets\": 3, \"reps\": 8, \"weight\": 100, \"weight_unit\": \"kg\", \"notes\": \"3 sets squats 100kg 8 reps\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nInput: \"قرأت سورة الكهف من الآية 1 للآية 110\"\nOutput:\n[{\"record_type\": \"Quran\", \"surah_name\": \"الكهف\", \"surah_number\": 18, \"start_ayah\": 1, \"end_ayah\": 110, \"pages_read\": 0, \"notes\": \"\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nInput: \"مهمة: مراجعة تقرير الشغل أولوية عالية\"\nOutput:\n[{\"record_type\": \"Task\", \"task_description\": \"مراجعة تقرير الشغل\", \"priority\": \"High\", \"due_date\": \"Unspecified\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]",
               "role": "model"
             },
             {
@@ -40,78 +107,62 @@
       },
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1.2,
-      "position": [
-        672,
-        -128
-      ],
+      "position": [672, -128],
       "id": "c54cfd14-09cc-4b64-8877-e1d70b32adf5",
       "name": "Message a model",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "OLkFIn8LAQhjPlRy",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
+      "credentials": {"googlePalmApi": {"id": "OLkFIn8LAQhjPlRy", "name": "Google Gemini(PaLM) Api account"}}
     },
     {
       "parameters": {
-        "jsCode": "const inputData = $input.first().json;\nlet rawText = \"\";\n\n// 1. استخراج النص سواء من مسار الصوت أو النص\nif (inputData.content && inputData.content.parts && inputData.content.parts[0].text) {\n    rawText = inputData.content.parts[0].text;\n} else if (inputData.text) {\n    rawText = inputData.text;\n} else if (inputData.candidates && inputData.candidates[0].content.parts[0].text) {\n    rawText = inputData.candidates[0].content.parts[0].text;\n} else {\n    throw new Error(\"لم يتم العثور على النص! الرجاء التحقق من مخرجات عقدة الذكاء الاصطناعي.\");\n}\n\n// 2. التنظيف\nrawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();\n\n// 3. تحويل النص إلى كائن برمجي\nconst parsedData = JSON.parse(rawText);\n\n// 4. التأكد من أن البيانات مصفوفة (Array) حتى لو كانت معاملة واحدة\nlet transactionsArray = Array.isArray(parsedData) ? parsedData : [parsedData];\n\n// 5. إخراج البيانات بصيغة يفهمها n8n (بدون توليد batch_id)\nreturn transactionsArray.map(transaction => {\n    return { json: transaction };\n});"
+        "resource": "audio",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash-lite"
+        },
+        "text": "You are a smart Life OS Assistant. Your task is to analyze the user's message and extract structured data as a JSON array ONLY — no extra text, no explanations, no markdown.\n\n## Strict Rules\n1. Output must be a JSON array only: [ { ... } ]\n2. Do NOT write anything before or after the JSON\n3. Every message belongs to exactly ONE type: Expense, Gym, Quran, or Task\n4. The \"status\" field is always \"Pending\" unless clarification is needed\n5. The \"date\" field must be in YYYY-MM-DD format. Use today's date if not mentioned\n6. If the message is unclear or missing required info, return:\n   [{\"record_type\": \"any\", \"status\": \"clarification_needed\", \"message\": \"<ask the user what info is missing>\"}]\n\n---\n\n## Category Detection & JSON Schemas\n\n### Expense\nArabic triggers: اشتريت، دفعت، صرفت، فاتورة، جنيه، ريال، دولار، كام، بكام، سعر\nEnglish triggers: bought, spent, paid, cost, price, bill, receipt\n\nSchema (one object per distinct item):\n{\"record_type\": \"Expense\", \"item_name\": \"clean product name\", \"notes\": \"full user description\", \"amount\": 0, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"store name or Unspecified\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: Calculate total if unit price x quantity given. Default currency: EGP. Default payment_method: Cash.\n\n### Gym\nArabic triggers: جيم، تمرين، سيت، تكرار، رياضة، اشتغلت، عملت، كيلو، وزن\nEnglish triggers: gym, workout, exercise, sets, reps, kg, lbs, bench press, squat, deadlift, pull-up\n\nSchema (one object per exercise):\n{\"record_type\": \"Gym\", \"exercise_name\": \"Exercise Name in English\", \"muscle_group\": \"Chest/Back/Legs/Shoulders/Arms/Core\", \"sets\": 0, \"reps\": 0, \"weight\": 0, \"weight_unit\": \"kg\", \"notes\": \"full description\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: Each exercise = separate object. Infer muscle_group from exercise name. Default weight_unit: kg.\n\n### Quran\nArabic triggers: قرآن، قرأت، ورد، سورة، آية، ختمة، حزب، جزء، صفحة\nEnglish triggers: quran, surah, ayah, recite, verse, page\n\nSchema:\n{\"record_type\": \"Quran\", \"surah_name\": \"Arabic surah name\", \"surah_number\": 0, \"start_ayah\": 0, \"end_ayah\": 0, \"pages_read\": 0, \"notes\": \"\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: If ayah range not mentioned set start_ayah and end_ayah to 0. If pages_read not mentioned set to 0.\n\n### Task\nArabic triggers: مهمة، task، اعمل، لازم، محتاج، تذكير، راجع، خلصت، اتكلم\nEnglish triggers: task, todo, reminder, need to, must, should, call, review, finish\n\nSchema:\n{\"record_type\": \"Task\", \"task_description\": \"clear task description\", \"priority\": \"High/Medium/Low\", \"due_date\": \"YYYY-MM-DD or Unspecified\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\nRules: Default priority: Medium. Default due_date: Unspecified.\n\n---\n\n## Examples\n\nInput: \"اشتريت حليب بـ 20 جنيه وعيش بـ 10 من المخبز\"\nOutput:\n[{\"record_type\": \"Expense\", \"item_name\": \"حليب\", \"notes\": \"حليب بـ 20 جنيه\", \"amount\": 20, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"المخبز\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}, {\"record_type\": \"Expense\", \"item_name\": \"عيش\", \"notes\": \"عيش بـ 10\", \"amount\": 10, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"المخبز\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nInput: \"I did 4 sets of bench press 80kg 10 reps and 3 sets of squats 100kg 8 reps\"\nOutput:\n[{\"record_type\": \"Gym\", \"exercise_name\": \"Bench Press\", \"muscle_group\": \"Chest\", \"sets\": 4, \"reps\": 10, \"weight\": 80, \"weight_unit\": \"kg\", \"notes\": \"4 sets bench press 80kg 10 reps\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}, {\"record_type\": \"Gym\", \"exercise_name\": \"Squats\", \"muscle_group\": \"Legs\", \"sets\": 3, \"reps\": 8, \"weight\": 100, \"weight_unit\": \"kg\", \"notes\": \"3 sets squats 100kg 8 reps\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nInput: \"قرأت سورة الكهف من الآية 1 للآية 110\"\nOutput:\n[{\"record_type\": \"Quran\", \"surah_name\": \"الكهف\", \"surah_number\": 18, \"start_ayah\": 1, \"end_ayah\": 110, \"pages_read\": 0, \"notes\": \"\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nInput: \"مهمة: مراجعة تقرير الشغل أولوية عالية\"\nOutput:\n[{\"record_type\": \"Task\", \"task_description\": \"مراجعة تقرير الشغل\", \"priority\": \"High\", \"due_date\": \"Unspecified\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [736, 64],
+      "id": "edcfb9d9-9b8d-40f0-ba4a-4bdf493eb4e7",
+      "name": "Analyze audio",
+      "credentials": {"googlePalmApi": {"id": "OLkFIn8LAQhjPlRy", "name": "Google Gemini(PaLM) Api account"}}
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash-lite"
+        },
+        "text": "أنت مساعد ذكي متعدد الاستخدامات (Life OS Assistant). مهمتك تحليل رسائل المستخدم واستخراج بيانات منظمة بصيغة JSON دقيقة فقط، بدون أي نصوص إضافية.\n\n## قواعد أساسية\n1. الإخراج يجب أن يكون مصفوفة JSON فقط: [ { ... } ]\n2. لا تكتب أي نصوص قبل أو بعد JSON\n3. كل رسالة تنتمي لنوع واحد فقط — Expense أو Gym أو Quran أو Task\n4. حقل status دائماً \"Pending\" ما عدا حالة الاستفسار\n5. حقل date بصيغة YYYY-MM-DD. استخدم تاريخ اليوم إذا لم يُذكر غيره\n6. إذا كانت الرسالة غير واضحة، أرجع:\n   [{\"record_type\": \"any\", \"status\": \"clarification_needed\", \"message\": \"<اسأل عن المعلومات الناقصة>\"}]\n\n---\n\n## مخطط كل نوع\n\n### Expense — مشتريات، مصروفات، دفعات، فواتير\n{\"record_type\": \"Expense\", \"item_name\": \"اسم المنتج\", \"notes\": \"الوصف الكامل\", \"amount\": 0, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"Unspecified\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\n\n### Gym — تمارين، جيم، workout, exercise, رياضة\n{\"record_type\": \"Gym\", \"exercise_name\": \"Bench Press\", \"muscle_group\": \"Chest\", \"sets\": 4, \"reps\": 10, \"weight\": 80, \"weight_unit\": \"kg\", \"notes\": \"وصف التمرين\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\n\n### Quran — قراءة قرآن، ورد، سورة، ختمة\n{\"record_type\": \"Quran\", \"surah_name\": \"الكهف\", \"surah_number\": 18, \"start_ayah\": 1, \"end_ayah\": 110, \"pages_read\": 10, \"notes\": \"\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\n\n### Task — مهمة، to-do، تذكير، task\n{\"record_type\": \"Task\", \"task_description\": \"وصف المهمة\", \"priority\": \"High\", \"due_date\": \"Unspecified\", \"status\": \"Pending\", \"date\": \"YYYY-MM-DD\"}\n\n---\n\n## أمثلة\n\nالمدخل: اشتريت حليب بـ 20 جنيه وعيش بـ 10 من المخبز\nالمخرج:\n[{\"record_type\": \"Expense\", \"item_name\": \"حليب\", \"notes\": \"حليب بـ 20 جنيه\", \"amount\": 20, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"المخبز\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}, {\"record_type\": \"Expense\", \"item_name\": \"عيش\", \"notes\": \"عيش بـ 10\", \"amount\": 10, \"quantity\": 1, \"currency\": \"EGP\", \"entity\": \"المخبز\", \"category\": \"Groceries\", \"payment_method\": \"Cash\", \"direction\": \"Expense\", \"transaction_type\": \"Payment\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nالمدخل: I did 4 sets of bench press 80kg 10 reps and 3 sets of squats 100kg 8 reps\nالمخرج:\n[{\"record_type\": \"Gym\", \"exercise_name\": \"Bench Press\", \"muscle_group\": \"Chest\", \"sets\": 4, \"reps\": 10, \"weight\": 80, \"weight_unit\": \"kg\", \"notes\": \"4 sets bench press 80kg 10 reps\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}, {\"record_type\": \"Gym\", \"exercise_name\": \"Squats\", \"muscle_group\": \"Legs\", \"sets\": 3, \"reps\": 8, \"weight\": 100, \"weight_unit\": \"kg\", \"notes\": \"3 sets squats 100kg 8 reps\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nالمدخل: قرأت سورة الكهف من الآية 1 للآية 110\nالمخرج:\n[{\"record_type\": \"Quran\", \"surah_name\": \"الكهف\", \"surah_number\": 18, \"start_ayah\": 1, \"end_ayah\": 110, \"pages_read\": 0, \"notes\": \"\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]\n\nالمدخل: مهمة: مراجعة تقرير الشغل أولوية عالية\nالمخرج:\n[{\"record_type\": \"Task\", \"task_description\": \"مراجعة تقرير الشغل\", \"priority\": \"High\", \"due_date\": \"Unspecified\", \"status\": \"Pending\", \"date\": \"2026-08-26\"}]",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [736, 256],
+      "id": "2c7f8ad1-7581-4f02-bb91-b9759f60c517",
+      "name": "Analyze an image",
+      "credentials": {"googlePalmApi": {"id": "OLkFIn8LAQhjPlRy", "name": "Google Gemini(PaLM) Api account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $input.first().json;\nlet rawText = \"\";\n\n// استخراج النص سواء من مسار الصوت أو النص\nif (inputData.content && inputData.content.parts && inputData.content.parts[0].text) {\n    rawText = inputData.content.parts[0].text;\n} else if (inputData.text) {\n    rawText = inputData.text;\n} else if (inputData.candidates && inputData.candidates[0].content.parts[0].text) {\n    rawText = inputData.candidates[0].content.parts[0].text;\n} else {\n    throw new Error(\"لم يتم العثور على النص! الرجاء التحقق من مخرجات عقدة الذكاء الاصطناعي.\");\n}\n\n// التنظيف\nrawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();\n\n// تحويل النص إلى كائن برمجي\nconst parsedData = JSON.parse(rawText);\n\n// التأكد من أن البيانات مصفوفة (Array)\nlet transactionsArray = Array.isArray(parsedData) ? parsedData : [parsedData];\n\n// إخراج البيانات بصيغة يفهمها n8n\nreturn transactionsArray.map(transaction => {\n    return { json: transaction };\n});"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1024,
-        64
-      ],
+      "position": [1024, 64],
       "id": "7a839da5-84d1-4195-9dfc-0c658dc48d19",
       "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('When Executed by Another Workflow').item.json.message.from.id }}",
-        "text": "={{ $json.summary_text }}",
-        "replyMarkup": "inlineKeyboard",
-        "inlineKeyboard": {
-          "rows": [
-            {
-              "row": {
-                "buttons": [
-                  {
-                    "text": "✅ تأكيد",
-                    "additionalFields": {
-                      "callback_data": "=confirm_{{ $node[\"Append row in sheet\"].json.row_id }}"
-                    }
-                  },
-                  {
-                    "text": "❌ إلغاء",
-                    "additionalFields": {
-                      "callback_data": "=cancel_{{ $node[\"Append row in sheet\"].json.row_id }}"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        "additionalFields": {
-          "parse_mode": "Markdown"
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1920,
-        -32
-      ],
-      "id": "eb92532b-459e-4071-b568-f7d7fd296d05",
-      "name": "Send a text message",
-      "webhookId": "e669440c-807c-4df2-a1e9-aa9e285f9e9a",
-      "credentials": {
-        "telegramApi": {
-          "id": "HigQWEeF62DPQciI",
-          "name": "Telegram account"
-        }
-      }
     },
     {
       "parameters": {
@@ -119,23 +170,8 @@
           "values": [
             {
               "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.status }}",
-                    "rightValue": "Pending",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    },
-                    "id": "4214afa4-7b01-4c05-92b1-83acab7d4d5b"
-                  }
-                ],
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
+                "conditions": [{"leftValue": "={{ $json.status }}", "rightValue": "Pending", "operator": {"type": "string", "operation": "equals"}, "id": "4214afa4-7b01-4c05-92b1-83acab7d4d5b"}],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -143,24 +179,8 @@
             },
             {
               "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "c04b9d1e-9246-4f3c-8e93-dca4e39ec643",
-                    "leftValue": "={{ $json.status }}",
-                    "rightValue": "clarification_needed",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals",
-                      "name": "filter.operator.equals"
-                    }
-                  }
-                ],
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
+                "conditions": [{"id": "c04b9d1e-9246-4f3c-8e93-dca4e39ec643", "leftValue": "={{ $json.status }}", "rightValue": "clarification_needed", "operator": {"type": "string", "operation": "equals", "name": "filter.operator.equals"}}],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -172,10 +192,7 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
-      "position": [
-        1248,
-        64
-      ],
+      "position": [1248, 64],
       "id": "bb12cbd1-f70b-4aec-a3e2-660645c8da61",
       "name": "Switch"
     },
@@ -187,19 +204,61 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [
-        1472,
-        160
-      ],
+      "position": [1472, 320],
       "id": "f77765a9-6e41-4c2f-8a90-e749322d4ca1",
       "name": "Send a text message1",
       "webhookId": "76783d0b-5b38-42a5-9f8f-97b7d5e051cc",
-      "credentials": {
-        "telegramApi": {
-          "id": "HigQWEeF62DPQciI",
-          "name": "Telegram account"
-        }
-      }
+      "credentials": {"telegramApi": {"id": "HigQWEeF62DPQciI", "name": "Telegram account"}}
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
+                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Expense", "operator": {"type": "string", "operation": "equals"}, "id": "cat-expense-001"}],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Expense"
+            },
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
+                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Gym", "operator": {"type": "string", "operation": "equals"}, "id": "cat-gym-001"}],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Gym"
+            },
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
+                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Quran", "operator": {"type": "string", "operation": "equals"}, "id": "cat-quran-001"}],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Quran"
+            },
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
+                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Task", "operator": {"type": "string", "operation": "equals"}, "id": "cat-task-001"}],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Task"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [1472, -32],
+      "id": "aa000000-0000-0000-0000-000000000001",
+      "name": "Category Router"
     },
     {
       "parameters": {
@@ -238,146 +297,20 @@
           },
           "matchingColumns": [],
           "schema": [
-            {
-              "id": "row_id",
-              "displayName": "row_id",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "date",
-              "displayName": "date",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "inserted_by",
-              "displayName": "inserted_by",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "direction",
-              "displayName": "direction",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "transaction_type",
-              "displayName": "transaction_type",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "amount",
-              "displayName": "amount",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "quantity",
-              "displayName": "quantity",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "currency",
-              "displayName": "currency",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "entity",
-              "displayName": "entity",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "category",
-              "displayName": "category",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "item_name",
-              "displayName": "item_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "payment_method",
-              "displayName": "payment_method",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "notes",
-              "displayName": "notes",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "status",
-              "displayName": "status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
+            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "date", "displayName": "date", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "inserted_by", "displayName": "inserted_by", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "direction", "displayName": "direction", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "transaction_type", "displayName": "transaction_type", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "amount", "displayName": "amount", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "quantity", "displayName": "quantity", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "currency", "displayName": "currency", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "entity", "displayName": "entity", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "category", "displayName": "category", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "item_name", "displayName": "item_name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "payment_method", "displayName": "payment_method", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "notes", "displayName": "notes", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -386,376 +319,325 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [
-        1472,
-        -32
-      ],
+      "position": [1696, -256],
       "id": "a33da9fc-eac0-4e69-b33e-e83f8ff7fa82",
       "name": "Append row in sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yqwAUhA2ye1gJcsG",
-          "name": "Google Sheets account"
-        }
-      }
+      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "loose",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "string",
-                      "operation": "exists",
-                      "singleValue": true
-                    },
-                    "id": "55d9fe88-acd9-4f34-aa26-81e3ae5b49fe"
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Text"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "loose",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "a0fcba01-d755-45b3-a251-38879bc08d7d",
-                    "leftValue": "={{ $json.message.voice }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "object",
-                      "operation": "exists",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "voice"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "loose",
-                  "version": 3
-                },
-                "conditions": [
-                  {
-                    "id": "bfa4dec6-9d4a-4561-a0e7-6953f5685a8c",
-                    "leftValue": "={{ $json.message.photo[0] }}",
-                    "rightValue": "",
-                    "operator": {
-                      "type": "object",
-                      "operation": "exists",
-                      "singleValue": true
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "photo"
-            }
-          ]
-        },
-        "looseTypeValidation": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        224,
-        48
-      ],
-      "id": "74b48aee-265d-40e6-8cf3-18951aa88958",
-      "name": "Switch1"
-    },
-    {
-      "parameters": {
-        "resource": "file",
-        "fileId": "={{ $json.message.voice.file_id }}",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        448,
-        64
-      ],
-      "id": "b57546cc-9c60-4a93-914f-c38ae9223199",
-      "name": "Get a file",
-      "webhookId": "684af1af-ec35-4c5e-9f1a-efcbe0cb6af6",
-      "credentials": {
-        "telegramApi": {
-          "id": "HigQWEeF62DPQciI",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "audio",
-        "operation": "analyze",
-        "modelId": {
+        "operation": "append",
+        "documentId": {
           "__rl": true,
-          "value": "models/gemini-3.5-flash-lite",
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
           "mode": "list",
-          "cachedResultName": "models/gemini-3.5-flash-lite"
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
         },
-        "text": "=أنت مساعد مالي ذكي متخصص في تحليل الرسائل النصية للمشتريات وتحويلها إلى مصفوفة (Array) بصيغة JSON دقيقة فقط، دون أي نصوص إضافية أو شرح.\n\nيجب عليك استخراج كل عنصر قام المستخدم بشرائه ككائن (Object) منفصل داخل المصفوفة، وتعبئة الحقول التالية بدقة:\n\n- `item_name` (نص): اسم المنتج أو الصنف الأساسي مجرداً فقط (مثال: \"فول\", \"جبنة موتزاريلا\", \"بطاطس\").\n- `notes` (نص): الوصف الكامل كما ذكره المستخدم، بما في ذلك نوع العبوة أو تفاصيل السعر (مثال: \"2 علبة فول\", \"الكيلو بـ 50 جنيه\").\n- `amount` (رقم): التكلفة الإجمالية للصنف. إذا ذكر المستخدم سعر الوحدة والكمية، قم بضربهم لاستخراج الإجمالي.\n- `quantity` (رقم): العدد أو الكمية التي تم شراؤها. إذا لم تذكر، القيمة الافتراضية هي 1.\n- `currency` (نص): العملة المستخدمة. الافتراضي هو \"EGP\" (أو استخرجها إذا تم تحديدها مثل SAR أو USD).\n- `entity` (نص): مكان الشراء أو البائع (مثال: \"السوق\", \"جوملا ماركت\"). الافتراضي هو \"Unspecified\".\n- `category` (نص): التصنيف المالي للمصروفات (مثال: \"Groceries\", \"Food & Dining\", \"Health\").\n- `payment_method` (نص): طريقة الدفع (مثال: \"Cash\", \"Credit Card\"). الافتراضي هو \"Cash\" ما لم يذكر غير ذلك.\n- `direction` (نص): دائماً قيمتها \"Expense\".\n- `transaction_type` (نص): دائماً قيمتها \"Payment\".\n- `status` (نص): دائماً قيمتها \"Pending\".\n- `date` (نص): تاريخ المعاملة بصيغة YYYY-MM-DD. استخدم تاريخ اليوم ما لم يذكر المستخدم غير ذلك.\n\nقواعد صارمة:\n1. يجب أن يكون الإخراج مصفوفة JSON فقط [ { ... }, { ... } ].\n2. لا تكتب أي نصوص توضيحية قبل أو بعد كود الـ JSON.\n\nمثال للمدخلات: \"اشتريت 2 علبة فول العلبة ب 15 و1 جبنة موتزاريلا ب 90 من السوق\"\nمثال للمخرجات المطلوبة:\n[\n  {\n    \"item_name\": \"فول\",\n    \"notes\": \"2 علبة فول العلبة ب 15\",\n    \"amount\": 30,\n    \"quantity\": 2,\n    \"currency\": \"EGP\",\n    \"entity\": \"السوق\",\n    \"category\": \"Groceries\",\n    \"payment_method\": \"Cash\",\n    \"direction\": \"Expense\",\n    \"transaction_type\": \"Payment\",\n    \"status\": \"Pending\",\n    \"date\": \"2026-08-15\"\n  },\n  {\n    \"item_name\": \"جبنة موتزاريلا\",\n    \"notes\": \"1 جبنة موتزاريلا ب 90\",\n    \"amount\": 90,\n    \"quantity\": 1,\n    \"currency\": \"EGP\",\n    \"entity\": \"السوق\",\n    \"category\": \"Groceries\",\n    \"payment_method\": \"Cash\",\n    \"direction\": \"Expense\",\n    \"transaction_type\": \"Payment\",\n    \"status\": \"Pending\",\n    \"date\": \"2026-08-15\"\n  }\n]",
-        "inputType": "binary",
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=1067827227",
+          "mode": "list",
+          "cachedResultName": "Gym",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_id": "={{ $execution.id }}",
+            "date": "={{ $json.date }}",
+            "inserted_by": "={{ $('When Executed by Another Workflow').item.json.message.chat.first_name }} {{ $('When Executed by Another Workflow').item.json.message.chat.last_name }}",
+            "exercise_name": "={{ $json.exercise_name }}",
+            "muscle_group": "={{ $json.muscle_group }}",
+            "sets": "={{ $json.sets }}",
+            "reps": "={{ $json.reps }}",
+            "weight": "={{ $json.weight }}",
+            "weight_unit": "={{ $json.weight_unit }}",
+            "notes": "={{ $json.notes }}",
+            "status": "Pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "date", "displayName": "date", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "inserted_by", "displayName": "inserted_by", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "exercise_name", "displayName": "exercise_name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "muscle_group", "displayName": "muscle_group", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "sets", "displayName": "sets", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "reps", "displayName": "reps", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "weight", "displayName": "weight", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "weight_unit", "displayName": "weight_unit", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "notes", "displayName": "notes", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1.2,
-      "position": [
-        736,
-        64
-      ],
-      "id": "edcfb9d9-9b8d-40f0-ba4a-4bdf493eb4e7",
-      "name": "Analyze audio",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "OLkFIn8LAQhjPlRy",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1696, -96],
+      "id": "aa000000-0000-0000-0000-000000000002",
+      "name": "Append row in sheet - Gym",
+      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nlet summaryText = \"📝 ملخص المشتريات:\\n\\n\";\nlet totalAmount = 0;\n\n// استخراج المعرف الجديد\nconst sharedIdentifier = items[0].json.row_id || items[0].json.row_number; \n\nitems.forEach((item, index) => {\n    const t = item.json;\n    \n    // الاعتماد على item_name كاسم أساسي\n    const name = t.item_name ? t.item_name : (t.category || \"عنصر غير محدد\");\n    \n    // إضافة الملاحظات (مثل: 2 علبة) بين قوسين إذا كانت موجودة\n    const itemNotes = t.notes ? ` (${t.notes})` : \"\";\n    \n    // التحقق من وجود كمية وإضافتها للنص إذا كانت أكبر من 1\n    const qtyText = (t.quantity && t.quantity > 1) ? ` - العدد: ${t.quantity}` : \"\";\n    \n    summaryText += `${index + 1}. ${name}${itemNotes}${qtyText} - ${t.amount} ${t.currency}\\n`;\n    totalAmount += Number(t.amount);\n});\n\nsummaryText += `\\n💰 الإجمالي: ${totalAmount}`;\n\nreturn [{\n    json: {\n        summary_text: summaryText,\n        row_id: sharedIdentifier \n    }\n}];"
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=997258062",
+          "mode": "list",
+          "cachedResultName": "Quran",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_id": "={{ $execution.id }}",
+            "date": "={{ $json.date }}",
+            "inserted_by": "={{ $('When Executed by Another Workflow').item.json.message.chat.first_name }} {{ $('When Executed by Another Workflow').item.json.message.chat.last_name }}",
+            "surah_name": "={{ $json.surah_name }}",
+            "surah_number": "={{ $json.surah_number }}",
+            "start_ayah": "={{ $json.start_ayah }}",
+            "end_ayah": "={{ $json.end_ayah }}",
+            "pages_read": "={{ $json.pages_read }}",
+            "notes": "={{ $json.notes }}",
+            "status": "Pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "date", "displayName": "date", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "inserted_by", "displayName": "inserted_by", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "surah_name", "displayName": "surah_name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "surah_number", "displayName": "surah_number", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "start_ayah", "displayName": "start_ayah", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "end_ayah", "displayName": "end_ayah", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "pages_read", "displayName": "pages_read", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "notes", "displayName": "notes", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1696, 64],
+      "id": "aa000000-0000-0000-0000-000000000003",
+      "name": "Append row in sheet - Quran",
+      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=840579677",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_id": "={{ $execution.id }}",
+            "date": "={{ $json.date }}",
+            "inserted_by": "={{ $('When Executed by Another Workflow').item.json.message.chat.first_name }} {{ $('When Executed by Another Workflow').item.json.message.chat.last_name }}",
+            "task_description": "={{ $json.task_description }}",
+            "priority": "={{ $json.priority }}",
+            "due_date": "={{ $json.due_date }}",
+            "status": "Pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "date", "displayName": "date", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "inserted_by", "displayName": "inserted_by", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "task_description", "displayName": "task_description", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "priority", "displayName": "priority", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "due_date", "displayName": "due_date", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
+            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false}
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1696, 224],
+      "id": "aa000000-0000-0000-0000-000000000004",
+      "name": "Append row in sheet - Tasks",
+      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet summaryText = \"💰 ملخص المصروفات:\\n\\n\";\nlet totalAmount = 0;\n\nconst sharedIdentifier = items[0].json.row_id || items[0].json.row_number;\n\nitems.forEach((item, index) => {\n    const t = item.json;\n    const name = t.item_name ? t.item_name : (t.category || \"عنصر غير محدد\");\n    const itemNotes = t.notes ? ` (${t.notes})` : \"\";\n    const qtyText = (t.quantity && t.quantity > 1) ? ` - العدد: ${t.quantity}` : \"\";\n    summaryText += `${index + 1}. ${name}${itemNotes}${qtyText} - ${t.amount} ${t.currency}\\n`;\n    totalAmount += Number(t.amount);\n});\n\nsummaryText += `\\n💰 الإجمالي: ${totalAmount} ${items[0].json.currency}`;\n\nreturn [{\n    json: {\n        summary_text: summaryText,\n        row_id: sharedIdentifier,\n        record_type: \"Expense\"\n    }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1696,
-        -32
-      ],
+      "position": [1920, -256],
       "id": "16656567-9cb9-452a-8aac-2b3753123337",
       "name": "Code in JavaScript1"
     },
     {
       "parameters": {
-        "resource": "file",
-        "fileId": "={{ $json.message.photo.slice(-1)[0].file_id }}",
-        "additionalFields": {}
+        "jsCode": "const items = $input.all();\nlet summaryText = \"🏋️ ملخص التمرين:\\n\\n\";\n\nconst sharedIdentifier = items[0].json.row_id || items[0].json.row_number;\n\nitems.forEach((item, index) => {\n    const t = item.json;\n    const exercise = t.exercise_name || \"تمرين غير محدد\";\n    const muscle = t.muscle_group ? ` (${t.muscle_group})` : \"\";\n    const setsReps = (t.sets && t.reps) ? ` — ${t.sets} سيت × ${t.reps} تكرار` : \"\";\n    const weightInfo = t.weight ? ` — ${t.weight} ${t.weight_unit || 'kg'}` : \"\";\n    summaryText += `${index + 1}. ${exercise}${muscle}${setsReps}${weightInfo}\\n`;\n});\n\nreturn [{\n    json: {\n        summary_text: summaryText,\n        row_id: sharedIdentifier,\n        record_type: \"Gym\"\n    }\n}];"
       },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        448,
-        256
-      ],
-      "id": "9e299d1b-23cc-4908-a21a-3d830f41252e",
-      "name": "Get a file1",
-      "webhookId": "589fa804-5d92-4942-9149-c90343eae2bd",
-      "credentials": {
-        "telegramApi": {
-          "id": "HigQWEeF62DPQciI",
-          "name": "Telegram account"
-        }
-      }
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, -96],
+      "id": "aa000000-0000-0000-0000-000000000005",
+      "name": "Code - Gym Summary Builder"
     },
     {
       "parameters": {
-        "resource": "image",
-        "operation": "analyze",
-        "modelId": {
-          "__rl": true,
-          "value": "models/gemini-3.5-flash-lite",
-          "mode": "list",
-          "cachedResultName": "models/gemini-3.5-flash-lite"
-        },
-        "text": "أنت مساعد مالي ذكي متخصص في تحليل الرسائل النصية للمشتريات وتحويلها إلى مصفوفة (Array) بصيغة JSON دقيقة فقط، دون أي نصوص إضافية أو شرح.\n\nيجب عليك استخراج كل عنصر قام المستخدم بشرائه ككائن (Object) منفصل داخل المصفوفة، وتعبئة الحقول التالية بدقة:\n\n- `item_name` (نص): اسم المنتج أو الصنف الأساسي مجرداً فقط (مثال: \"فول\", \"جبنة موتزاريلا\", \"بطاطس\").\n- `notes` (نص): الوصف الكامل كما ذكره المستخدم، بما في ذلك نوع العبوة أو تفاصيل السعر (مثال: \"2 علبة فول\", \"الكيلو بـ 50 جنيه\").\n- `amount` (رقم): التكلفة الإجمالية للصنف. إذا ذكر المستخدم سعر الوحدة والكمية، قم بضربهم لاستخراج الإجمالي.\n- `quantity` (رقم): العدد أو الكمية التي تم شراؤها. إذا لم تذكر، القيمة الافتراضية هي 1.\n- `currency` (نص): العملة المستخدمة. الافتراضي هو \"EGP\" (أو استخرجها إذا تم تحديدها مثل SAR أو USD).\n- `entity` (نص): مكان الشراء أو البائع (مثال: \"السوق\", \"جوملا ماركت\"). الافتراضي هو \"Unspecified\".\n- `category` (نص): التصنيف المالي للمصروفات (مثال: \"Groceries\", \"Food & Dining\", \"Health\").\n- `payment_method` (نص): طريقة الدفع (مثال: \"Cash\", \"Credit Card\"). الافتراضي هو \"Cash\" ما لم يذكر غير ذلك.\n- `direction` (نص): دائماً قيمتها \"Expense\".\n- `transaction_type` (نص): دائماً قيمتها \"Payment\".\n- `status` (نص): دائماً قيمتها \"Pending\".\n- `date` (نص): تاريخ المعاملة بصيغة YYYY-MM-DD. استخدم تاريخ اليوم ما لم يذكر المستخدم غير ذلك.\n\nقواعد صارمة:\n1. يجب أن يكون الإخراج مصفوفة JSON فقط [ { ... }, { ... } ].\n2. لا تكتب أي نصوص توضيحية قبل أو بعد كود الـ JSON.\n\nمثال للمدخلات: \"اشتريت 2 علبة فول العلبة ب 15 و1 جبنة موتزاريلا ب 90 من السوق\"\nمثال للمخرجات المطلوبة:\n[\n  {\n    \"item_name\": \"فول\",\n    \"notes\": \"2 علبة فول العلبة ب 15\",\n    \"amount\": 30,\n    \"quantity\": 2,\n    \"currency\": \"EGP\",\n    \"entity\": \"السوق\",\n    \"category\": \"Groceries\",\n    \"payment_method\": \"Cash\",\n    \"direction\": \"Expense\",\n    \"transaction_type\": \"Payment\",\n    \"status\": \"Pending\",\n    \"date\": \"2026-08-15\"\n  },\n  {\n    \"item_name\": \"جبنة موتزاريلا\",\n    \"notes\": \"1 جبنة موتزاريلا ب 90\",\n    \"amount\": 90,\n    \"quantity\": 1,\n    \"currency\": \"EGP\",\n    \"entity\": \"السوق\",\n    \"category\": \"Groceries\",\n    \"payment_method\": \"Cash\",\n    \"direction\": \"Expense\",\n    \"transaction_type\": \"Payment\",\n    \"status\": \"Pending\",\n    \"date\": \"2026-08-15\"\n  }\n]",
-        "inputType": "binary",
-        "options": {}
+        "jsCode": "const items = $input.all();\nlet summaryText = \"📖 ملخص الورد:\\n\\n\";\n\nconst sharedIdentifier = items[0].json.row_id || items[0].json.row_number;\n\nitems.forEach((item, index) => {\n    const t = item.json;\n    const surah = t.surah_name || \"سورة غير محددة\";\n    const ayahRange = (t.start_ayah && t.end_ayah) ? ` — من الآية ${t.start_ayah} إلى ${t.end_ayah}` : \"\";\n    const pages = t.pages_read ? ` — ${t.pages_read} صفحة` : \"\";\n    summaryText += `${index + 1}. سورة ${surah}${ayahRange}${pages}\\n`;\n});\n\nreturn [{\n    json: {\n        summary_text: summaryText,\n        row_id: sharedIdentifier,\n        record_type: \"Quran\"\n    }\n}];"
       },
-      "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1.2,
-      "position": [
-        736,
-        256
-      ],
-      "id": "2c7f8ad1-7581-4f02-bb91-b9759f60c517",
-      "name": "Analyze an image",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "OLkFIn8LAQhjPlRy",
-          "name": "Google Gemini(PaLM) Api account"
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 64],
+      "id": "aa000000-0000-0000-0000-000000000006",
+      "name": "Code - Quran Summary Builder"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet summaryText = \"✅ ملخص المهام:\\n\\n\";\n\nconst sharedIdentifier = items[0].json.row_id || items[0].json.row_number;\n\nitems.forEach((item, index) => {\n    const t = item.json;\n    const task = t.task_description || \"مهمة غير محددة\";\n    const priority = t.priority ? ` — الأولوية: ${t.priority}` : \"\";\n    const due = (t.due_date && t.due_date !== \"Unspecified\") ? ` — الموعد: ${t.due_date}` : \"\";\n    summaryText += `${index + 1}. ${task}${priority}${due}\\n`;\n});\n\nreturn [{\n    json: {\n        summary_text: summaryText,\n        row_id: sharedIdentifier,\n        record_type: \"Task\"\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1920, 224],
+      "id": "aa000000-0000-0000-0000-000000000007",
+      "name": "Code - Task Summary Builder"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.message.from.id }}",
+        "text": "={{ $json.summary_text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ تأكيد",
+                    "additionalFields": {
+                      "callback_data": "=confirm__{{ $json.record_type }}__{{ $json.row_id }}"
+                    }
+                  },
+                  {
+                    "text": "❌ إلغاء",
+                    "additionalFields": {
+                      "callback_data": "=cancel__{{ $json.record_type }}__{{ $json.row_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "Markdown"
         }
-      }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2144, -32],
+      "id": "eb92532b-459e-4071-b568-f7d7fd296d05",
+      "name": "Send a text message",
+      "webhookId": "e669440c-807c-4df2-a1e9-aa9e285f9e9a",
+      "credentials": {"telegramApi": {"id": "HigQWEeF62DPQciI", "name": "Telegram account"}}
     }
   ],
   "pinData": {},
   "connections": {
     "When Executed by Another Workflow": {
-      "main": [
-        [
-          {
-            "node": "Switch1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Message a model": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch": {
-      "main": [
-        [
-          {
-            "node": "Append row in sheet",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Send a text message1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a text message": {
-      "main": [
-        []
-      ]
-    },
-    "Append row in sheet": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{"node": "Switch1", "type": "main", "index": 0}]]
     },
     "Switch1": {
       "main": [
-        [
-          {
-            "node": "Message a model",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get a file",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get a file1",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{"node": "Message a model", "type": "main", "index": 0}],
+        [{"node": "Get a file", "type": "main", "index": 0}],
+        [{"node": "Get a file1", "type": "main", "index": 0}]
       ]
     },
     "Get a file": {
-      "main": [
-        [
-          {
-            "node": "Analyze audio",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Analyze audio": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript1": {
-      "main": [
-        [
-          {
-            "node": "Send a text message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{"node": "Analyze audio", "type": "main", "index": 0}]]
     },
     "Get a file1": {
-      "main": [
-        [
-          {
-            "node": "Analyze an image",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{"node": "Analyze an image", "type": "main", "index": 0}]]
+    },
+    "Message a model": {
+      "main": [[{"node": "Code in JavaScript", "type": "main", "index": 0}]]
+    },
+    "Analyze audio": {
+      "main": [[{"node": "Code in JavaScript", "type": "main", "index": 0}]]
     },
     "Analyze an image": {
+      "main": [[{"node": "Code in JavaScript", "type": "main", "index": 0}]]
+    },
+    "Code in JavaScript": {
+      "main": [[{"node": "Switch", "type": "main", "index": 0}]]
+    },
+    "Switch": {
       "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{"node": "Category Router", "type": "main", "index": 0}],
+        [{"node": "Send a text message1", "type": "main", "index": 0}]
       ]
+    },
+    "Category Router": {
+      "main": [
+        [{"node": "Append row in sheet", "type": "main", "index": 0}],
+        [{"node": "Append row in sheet - Gym", "type": "main", "index": 0}],
+        [{"node": "Append row in sheet - Quran", "type": "main", "index": 0}],
+        [{"node": "Append row in sheet - Tasks", "type": "main", "index": 0}]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [[{"node": "Code in JavaScript1", "type": "main", "index": 0}]]
+    },
+    "Append row in sheet - Gym": {
+      "main": [[{"node": "Code - Gym Summary Builder", "type": "main", "index": 0}]]
+    },
+    "Append row in sheet - Quran": {
+      "main": [[{"node": "Code - Quran Summary Builder", "type": "main", "index": 0}]]
+    },
+    "Append row in sheet - Tasks": {
+      "main": [[{"node": "Code - Task Summary Builder", "type": "main", "index": 0}]]
+    },
+    "Code in JavaScript1": {
+      "main": [[{"node": "Send a text message", "type": "main", "index": 0}]]
+    },
+    "Code - Gym Summary Builder": {
+      "main": [[{"node": "Send a text message", "type": "main", "index": 0}]]
+    },
+    "Code - Quran Summary Builder": {
+      "main": [[{"node": "Send a text message", "type": "main", "index": 0}]]
+    },
+    "Code - Task Summary Builder": {
+      "main": [[{"node": "Send a text message", "type": "main", "index": 0}]]
+    },
+    "Send a text message": {
+      "main": [[]]
     }
   },
   "active": true,
@@ -764,7 +646,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "456d252c-0ae8-43ed-9d40-5e98f137733d",
+  "versionId": "life-os-v2-sub1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "607c5f893829d27f4d8318b7189f3b509dcc8d0109d9791972a74e1ebe2d91d3"
