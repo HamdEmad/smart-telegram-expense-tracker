@@ -1,6 +1,6 @@
-# 🧠 Life OS — Smart Telegram Tracker Bot
+# 🧠 Life OS v3 — Smart Telegram Tracker & Task Planner Bot
 
-An intelligent, multimodal **Life Operating System** built with **n8n**, **Google Gemini AI**, and **Telegram**. Log your daily expenses, gym workouts, Quran reading, and tasks through plain natural text, voice notes, or photos — all parsed into structured data and synchronized to **Google Sheets** with an interactive confirmation workflow.
+An intelligent, multimodal **Life Operating System** built with **n8n**, **Google Gemini AI**, and **Telegram**. Log your daily expenses, gym workouts, Quran reading, tasks, and recurring daily habits through plain natural language, voice notes, or photos — all synchronized to **Google Sheets** with interactive Telegram confirmation cards and automated streak tracking.
 
 ---
 
@@ -8,50 +8,47 @@ An intelligent, multimodal **Life Operating System** built with **n8n**, **Googl
 
 - 🎙️ **Multimodal Input — 3 Input Types:**
   - **Text:** Natural language in Arabic or English
-  - **Voice Notes:** Gemini transcribes and extracts structured data directly
-  - **Photos:** Send a receipt, whiteboard, or handwritten note for instant extraction
+  - **Voice Notes:** Gemini transcribes, extracts structured data, and provides habit feedback
+  - **Photos:** Send receipts, whiteboards, or handwritten notes for instant extraction
 
-- 🧠 **4-Category Smart AI Extraction (Single Gemini Call):**
-  - Automatically classifies each message into the correct category
-  - Extracts all relevant fields per category in one pass
+- 🧠 **6-Category Smart AI Engine (Single Gemini Call):**
+  - Automatically classifies each message into the exact category
   - Arabic + English understood natively
 
   | Category | Tracks | Arabic Triggers |
   |---|---|---|
-  | 💰 **Expense** | Purchases, bills, payments | اشتريت، دفعت، صرفت |
-  | 🏋️ **Gym** | Exercises, sets, reps, weight | جيم، تمرين، سيت، رياضة |
+  | 💰 **Expense** | Purchases, bills, payments | اشتريت، دفعت، صرفت، فاتورة |
+  | 🏋️ **Gym** | Exercises, sets, reps, weight | جيم، تمرين، سيت، رياضة، وزن |
   | 📖 **Quran** | Surahs read, ayah range, pages | قرأت، ورد، سورة، ختمة |
-  | ✅ **Task** | To-dos, reminders, priorities | مهمة، لازم، تذكير |
+  | ✅ **Task** | One-off to-dos & complex projects with WBS | مهمة، لازم، تذكير، مشروع، خطط لي |
+  | 🎯 **Habit** | Recurring daily routines with streaks & pings | عادة، اتعلم، اتدرب، كل يوم، روتين |
+  | ⚡ **HabitLog** | Natural language / voice check-off | خلصت إنجليزي، أنجزت الورد |
 
-- ⌨️ **Interactive Telegram Confirmation UI:**
-  - Sends a categorized summary with `✅ تأكيد` / `❌ إلغاء` inline keyboard
-  - Confirm → updates status to `Confirmed` in the correct sheet tab
-  - Cancel → deletes the pending row(s) cleanly
+- 📋 **Intelligent Task Planning & WBS Decomposition:**
+  - **Atomic Errands (< 30 min):** Logged cleanly as single to-dos (no over-engineering).
+  - **Complex Projects:** Automatically decomposed into an actionable checklist with durations and milestones.
 
-- 🗃️ **One Spreadsheet, Four Sheet Tabs:**
-  - All categories live in one Google Sheets document
-  - Each category has its own dedicated tab with its own schema
+- ⏰ **Automated Daily Habit Reminders & Smart Batching:**
+  - **Hourly Scanner:** Pings you at your preferred reminder time (e.g. 8:00 PM for English).
+  - **Smart Batching:** Multiple habits due at the same hour are combined into a single, clean Telegram card.
+  - **One-Tap Check-in:** Tap `[ ✅ أنجزت الـ 15 دقيقة ]` to log completion and increment your streak!
+  - **Stateless Snooze:** Tap `[ ⏳ تأجيل ساعة ]` to delay the reminder safely.
 
-- 🧩 **Modular 3-Tier Workflow Architecture:**
-  - **Main Router** → **AI Extraction Sub-workflow** → **Button Callback Sub-workflow**
+- 🛠️ **Zero-Friction Auto-Provisioning (`/setup`):**
+  - Send `/setup` in Telegram, and n8n inspects your Google Sheet, creates any missing tabs, and seeds all column headers automatically!
+
+- 📅 **Interactive Daily Dashboard (`/today`):**
+  - Send `/today` or *"مهام اليوم"* to see your active daily habits, streaks, and pending tasks.
 
 ---
 
-## 🆕 What's New in v2 (Life OS Expansion)
+## 🆕 What's New in v3 (Task Planner & Habit Engine)
 
-If you are upgrading from v1 (Expense-only), here are the new nodes and sheets we added to the workflows:
-
-**New n8n Nodes Added:**
-- **Category Router (`Switch` node):** Added to Sub-workflow 1 to route the Gemini output based on the `record_type` (Expense, Gym, Quran, Task).
-- **Category Switches (`Switch` nodes):** Added to Sub-workflow 2 to route both `confirm` and `cancel` button clicks to the correct sheet.
-- **Dedicated Append Nodes:** 3 new Google Sheets `Append` nodes in Sub-workflow 1 for Gym, Quran, and Tasks.
-- **Dedicated Get/Update/Delete Nodes:** 12 new Google Sheets nodes in Sub-workflow 2 (4 Get, 4 Update, 4 Delete) to handle confirmation and cancellation per category.
-- **Summary Builders (`Code` nodes):** 4 separate JavaScript code nodes in Sub-workflow 1 to format Telegram messages with category-specific emojis.
-
-**New Google Sheets Tabs Created:**
-- 🏋️ `Gym` (gid=1067827227)
-- 📖 `Quran` (gid=997258062)
-- ✅ `Tasks` (gid=840579677)
+1. **Sub-workflow 3 — Daily Habits Scheduler:** Dedicated hourly cron scanner that reads active habits from Google Sheets and dispatches batched check-in cards.
+2. **Habits & Streak Tracking:** Idempotent streak calculation preventing accidental double-counting, with best-streak records.
+3. **WBS Task Decomposition:** Complex tasks like *"تجهيز بريزنتيشن لاجتماع الإدارة"* are structured into parent projects + actionable subtasks.
+4. **Natural Language Voice Check-offs:** Speak *"خلصت الـ 15 دقيقة إنجليزي"* via voice note to log your habit without touching a button.
+5. **Auto-Provisioning (`/setup`):** Instant database setup without manual spreadsheet editing.
 
 ---
 
@@ -71,71 +68,70 @@ flowchart LR
     User(["👤 User (Telegram)"]):::user
 
     subgraph WF_Main ["🚦 Main Router Workflow"]
-        direction LR
         T_Trigger["⚡ Telegram Trigger"]:::trigger
-        R_Switch{"🔀 Router Switch"}:::router
+        R_Switch{"🔀 Router Switch\n(/setup, /today, msg, btn)"}:::router
+        CmdSetup["🛠️ /setup: Provision Tabs"]:::tg
+        CmdToday["📋 /today: Daily Dashboard"]:::sheet
         Call_Sub1["🔗 Sub-workflow 1\n(AI Extraction)"]:::subwf
-        Call_Sub2["🔗 Sub-workflow 2\n(Button Clicks)"]:::subwf
+        Call_Sub2["🔗 Sub-workflow 2\n(Button Actions)"]:::subwf
+
         T_Trigger --> R_Switch
+        R_Switch -->|"/setup"| CmdSetup
+        R_Switch -->|"/today"| CmdToday
         R_Switch -->|"message"| Call_Sub1
         R_Switch -->|"callback_query"| Call_Sub2
     end
 
-    subgraph WF_Extract ["🧠 Sub-workflow 1: AI Extraction & Staging"]
-        direction LR
-        S1_Input{"🔀 Input Switch\n(Text/Voice/Photo)"}:::router
-        Gemini["✨ Gemini AI\n(Classify + Extract)"]:::ai
-        S1_Parser["⚙️ JSON Parser"]:::code
-        S1_Status{"🔀 Status Switch"}:::router
-        S1_Clarify["💬 Telegram: Clarification"]:::tg
-        CatRouter{"🔀 Category Router\n(Expense/Gym/Quran/Task)"}:::router
-        AppendE["📊 Sheet: Append\nExpense"]:::sheet
-        AppendG["📊 Sheet: Append\nGym"]:::sheet
-        AppendQ["📊 Sheet: Append\nQuran"]:::sheet
-        AppendT["📊 Sheet: Append\nTasks"]:::sheet
-        SummaryE["⚙️ Expense\nSummary"]:::code
-        SummaryG["⚙️ Gym\nSummary"]:::code
-        SummaryQ["⚙️ Quran\nSummary"]:::code
-        SummaryT["⚙️ Task\nSummary"]:::code
-        SendUI["💬 Telegram: Send Summary\n(✅ / ❌ Buttons)"]:::tg
+    subgraph WF_Scan ["⏰ Sub-workflow 3: Habits Scheduler"]
+        CronTrigger["⏰ Hourly Cron (0 * * * *)"]:::trigger
+        ReadHabits["📊 Read Active Habits"]:::sheet
+        FilterBatch["⚙️ Smart Batcher"]:::code
+        SendCheckin["💬 Send Interactive Check-in Card"]:::tg
 
-        S1_Input --> Gemini --> S1_Parser --> S1_Status
-        S1_Status -->|"clarification_needed"| S1_Clarify
-        S1_Status -->|"Pending"| CatRouter
-        CatRouter -->|"Expense"| AppendE --> SummaryE --> SendUI
-        CatRouter -->|"Gym"| AppendG --> SummaryG --> SendUI
-        CatRouter -->|"Quran"| AppendQ --> SummaryQ --> SendUI
-        CatRouter -->|"Task"| AppendT --> SummaryT --> SendUI
+        CronTrigger --> ReadHabits --> FilterBatch --> SendCheckin
     end
 
-    subgraph WF_Buttons ["🔘 Sub-workflow 2: Button Interaction"]
-        direction LR
-        S2_Parser["⚙️ Action Parser\n(action__type__rowId)"]:::code
-        S2_Action{"🔀 Action Switch\n(confirm/cancel)"}:::router
-        S2_CatC{"🔀 Category Switch\n(Confirm)"}:::router
-        S2_CatX{"🔀 Category Switch\n(Cancel)"}:::router
-        UpdateE["📊 Get+Update\nExpense"]:::sheet
-        UpdateG["📊 Get+Update\nGym"]:::sheet
-        UpdateQ["📊 Get+Update\nQuran"]:::sheet
-        UpdateT["📊 Get+Update\nTasks"]:::sheet
-        DeleteE["📊 Get+Delete\nExpense"]:::sheet
-        DeleteG["📊 Get+Delete\nGym"]:::sheet
-        DeleteQ["📊 Get+Delete\nQuran"]:::sheet
-        DeleteT["📊 Get+Delete\nTasks"]:::sheet
-        EditOK["💬 Telegram: ✅ Confirmed\n(category-aware)"]:::tg
-        EditX["💬 Telegram: ❌ Cancelled"]:::tg
+    subgraph WF_Extract ["🧠 Sub-workflow 1: AI Extraction & Planner"]
+        S1_Input{"🔀 Input Switch\n(Text/Voice/Photo)"}:::router
+        Gemini["✨ Gemini AI\n(Classify + Plan + WBS)"]:::ai
+        S1_Parser["⚙️ JSON Parser & ID Generator"]:::code
+        CatRouter{"🔀 Category Router\n(Expense, Gym, Quran, Task, Habit, Log)"}:::router
+        AppendE["📊 Sheet: Expense"]:::sheet
+        AppendG["📊 Sheet: Gym"]:::sheet
+        AppendQ["📊 Sheet: Quran"]:::sheet
+        AppendT["📊 Sheet: Tasks (WBS)"]:::sheet
+        AppendH["📊 Sheet: Habits"]:::sheet
+        AppendL["📊 Sheet: Habit_Logs"]:::sheet
+        SummaryBuilders["⚙️ Summary Builders"]:::code
+        SendUI["💬 Telegram: Preview Cards & Buttons"]:::tg
 
-        S2_Parser --> S2_Action
-        S2_Action -->|"confirm"| S2_CatC
-        S2_Action -->|"cancel"| S2_CatX
-        S2_CatC --> UpdateE & UpdateG & UpdateQ & UpdateT --> EditOK
-        S2_CatX --> DeleteE & DeleteG & DeleteQ & DeleteT --> EditX
+        S1_Input --> Gemini --> S1_Parser --> CatRouter
+        CatRouter -->|"Expense"| AppendE --> SummaryBuilders --> SendUI
+        CatRouter -->|"Gym"| AppendG --> SummaryBuilders --> SendUI
+        CatRouter -->|"Quran"| AppendQ --> SummaryBuilders --> SendUI
+        CatRouter -->|"Task"| AppendT --> SummaryBuilders --> SendUI
+        CatRouter -->|"Habit"| AppendH --> SummaryBuilders --> SendUI
+        CatRouter -->|"HabitLog"| AppendL
+    end
+
+    subgraph WF_Buttons ["🔘 Sub-workflow 2: Actions & Buttons"]
+        ActionParser["⚙️ Multi-Action Parser"]:::code
+        ActionSwitch{"🔀 Action Switch\n(confirm/cancel/done/snooze)"}:::router
+        HandleConfirm["📊 Update Status: Active / Confirmed"]:::sheet
+        HandleCancel["📊 Delete Pending Row"]:::sheet
+        HandleStreak["🔥 Idempotent Streak Engine"]:::code
+        HandleSnooze["⏰ Update Snooze Hour"]:::sheet
+        EditTelegram["💬 Telegram: Feedback & Flame Celebration"]:::tg
+
+        ActionParser --> ActionSwitch
+        ActionSwitch -->|"confirm"| HandleConfirm --> EditTelegram
+        ActionSwitch -->|"cancel"| HandleCancel --> EditTelegram
+        ActionSwitch -->|"done_habit"| HandleStreak --> EditTelegram
+        ActionSwitch -->|"snooze"| HandleSnooze --> EditTelegram
     end
 
     User ==>|"Text / Voice / Photo"| T_Trigger
-    User ==>|"Confirm / Cancel"| T_Trigger
-    Call_Sub1 -.->|"Executes"| S1_Input
-    Call_Sub2 -.->|"Executes"| S2_Parser
+    SendCheckin -.->|"User taps [ ✅ أنجزت ]"| T_Trigger
 ```
 
 ---
@@ -145,213 +141,195 @@ flowchart LR
 ```
 smart-telegram-expense-tracker/
 ├── WorkFlows/
-│   ├── Main Router Workflow.json           # Entrypoint — routes messages vs. callbacks
-│   ├── Sub-workflow 1 - AI Extraction.json # AI classify+extract, category routing, staging
-│   └── Sub-workflow 2 - Button Clicks.json # Confirm/cancel button handler per category
+│   ├── Main Router Workflow.json                  # Entrypoint — commands, messages vs. callbacks
+│   ├── Sub-workflow 1 - AI Extraction.json        # AI classification, task WBS, habit staging
+│   ├── Sub-workflow 2 - Button Clicks.json        # Confirm/cancel, streak engine, snooze handler
+│   └── Sub-workflow 3 - Daily Habits Scheduler.json # Hourly scanner sending batched check-in cards
 └── README.md
 ```
 
 ---
 
-## 🗃️ Google Sheets Database Schema
+## 🗃️ Google Sheets Database Schemas
 
-One spreadsheet document, four tabs. 
+All categories live in **one spreadsheet document across 6 dedicated tabs**:
 
-> [!IMPORTANT]
-> **Use your own Spreadsheet ID:** The workflows expect a specific Google Sheet. You must copy the ID of your own spreadsheet from its URL (`https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit`) and select it inside every Google Sheets node in the workflows.
+> [!TIP]
+> **Automatic Setup:** You don't have to create these headers by hand. Simply send `/setup` to your Telegram bot once, and all tabs are verified and prepared automatically!
 
 ---
 
 ### Tab 1: `Sheet1` — Expenses (`gid=0`)
-
-| Column | Type | Description | Example |
-|---|---|---|---|
-| `row_id` | String | Execution ID linking batch items | `exec-abc-123` |
-| `date` | String | Date `YYYY-MM-DD` | `2026-08-26` |
-| `inserted_by` | String | Telegram sender name | `Ahmed Ali` |
-| `direction` | String | `Expense` / `Income` | `Expense` |
-| `transaction_type` | String | `Payment` / `Transfer` | `Payment` |
-| `amount` | Number | Total cost | `90` |
-| `quantity` | Number | Quantity purchased | `2` |
-| `currency` | String | Currency code | `EGP` |
-| `entity` | String | Store / vendor name | `Carrefour` |
-| `category` | String | Spending category | `Groceries` |
-| `item_name` | String | Product name | `Mozzarella` |
-| `payment_method` | String | `Cash` / `Credit Card` | `Cash` |
-| `notes` | String | Full user description | `2 packs @ 45 EGP` |
-| `status` | String | `Pending` / `Confirmed` | `Confirmed` |
-
----
+`row_id`, `date`, `inserted_by`, `direction`, `transaction_type`, `amount`, `quantity`, `currency`, `entity`, `category`, `item_name`, `payment_method`, `notes`, `status`
 
 ### Tab 2: `Gym` — Workouts (`gid=1067827227`)
-
-| Column | Type | Description | Example |
-|---|---|---|---|
-| `row_id` | String | Execution ID | `exec-abc-123` |
-| `date` | String | Workout date | `2026-08-26` |
-| `inserted_by` | String | Telegram sender name | `Ahmed Ali` |
-| `exercise_name` | String | Exercise in English | `Bench Press` |
-| `muscle_group` | String | Target muscle | `Chest` |
-| `sets` | Number | Number of sets | `4` |
-| `reps` | Number | Reps per set | `10` |
-| `weight` | Number | Weight used | `80` |
-| `weight_unit` | String | `kg` or `lbs` | `kg` |
-| `notes` | String | Full description | `felt heavy today` |
-| `status` | String | `Pending` / `Confirmed` | `Confirmed` |
-
----
+`row_id`, `date`, `inserted_by`, `exercise_name`, `muscle_group`, `sets`, `reps`, `weight`, `weight_unit`, `notes`, `status`
 
 ### Tab 3: `Quran` — Daily Reading (`gid=997258062`)
+`row_id`, `date`, `inserted_by`, `surah_name`, `surah_number`, `start_ayah`, `end_ayah`, `pages_read`, `notes`, `status`
 
+### Tab 4: `Tasks` — Projects & To-Dos (`gid=840579677`)
 | Column | Type | Description | Example |
 |---|---|---|---|
-| `row_id` | String | Execution ID | `exec-abc-123` |
-| `date` | String | Reading date | `2026-08-26` |
-| `inserted_by` | String | Telegram sender name | `Ahmed Ali` |
-| `surah_name` | String | Arabic surah name | `الكهف` |
-| `surah_number` | Number | Surah number (1-114) | `18` |
-| `start_ayah` | Number | Starting ayah | `1` |
-| `end_ayah` | Number | Ending ayah | `110` |
-| `pages_read` | Number | Pages read | `10` |
-| `notes` | String | Notes | `` |
-| `status` | String | `Pending` / `Confirmed` | `Confirmed` |
-
----
-
-### Tab 4: `Tasks` — To-Do List (`gid=840579677`)
-
-| Column | Type | Description | Example |
-|---|---|---|---|
-| `row_id` | String | Execution ID | `exec-abc-123` |
-| `date` | String | Log date | `2026-08-26` |
-| `inserted_by` | String | Telegram sender name | `Ahmed Ali` |
-| `task_description` | String | Clear task description | `مراجعة تقرير الشغل` |
+| `row_id` | String | Execution ID linking the batch | `exec-abc-123` |
+| `task_id` | String | Unique item identifier | `T-abc12` (or `T-abc12-1` for subtask) |
+| `parent_task_id` | String | Empty if main task, or links to parent ID | `T-abc12` |
+| `telegram_chat_id` | Number | Numeric chat ID for reminders | `123456789` |
+| `date` | String | Creation date `YYYY-MM-DD` | `2026-09-03` |
+| `inserted_by` | String | Telegram sender display name | `Ahmed Ali` |
+| `task_description` | String | Title or subtask step | `جمع بيانات وتحليل أرقام الربع الأول` |
 | `priority` | String | `High` / `Medium` / `Low` | `High` |
-| `due_date` | String | `YYYY-MM-DD` or `Unspecified` | `2026-08-28` |
-| `status` | String | `Pending` / `Confirmed` | `Confirmed` |
+| `estimated_minutes` | Number | Estimated duration | `45` |
+| `due_date` | String | Deadline `YYYY-MM-DD` | `2026-09-06` |
+| `status` | String | `Pending` / `To Do` / `Completed` | `To Do` |
+
+### Tab 5: `Habits` — Daily Routines & Streaks
+| Column | Type | Description | Example |
+|---|---|---|---|
+| `habit_id` | String | Unique habit ID | `H-4812` |
+| `telegram_chat_id` | Number | Numeric chat ID for background cron pings | `123456789` |
+| `date_created` | String | Creation date | `2026-09-03` |
+| `inserted_by` | String | Telegram sender display name | `Ahmed Ali` |
+| `habit_name` | String | Name of habit | `Learn English` |
+| `category` | String | `Learning` / `Health` / `Deen` / `Work` | `Learning` |
+| `frequency` | String | `Daily` / `Weekdays` | `Daily` |
+| `target_minutes` | Number | Target duration per day | `15` |
+| `reminder_time` | String | Scheduled time in 24h format | `20:00` |
+| `snooze_until` | String | Temporary snooze hour | `` |
+| `current_streak` | Number | Current active streak | `11` |
+| `best_streak` | Number | Best streak record | `15` |
+| `last_completed_date` | String | `YYYY-MM-DD` of last completion | `2026-09-02` |
+| `status` | String | `Pending` / `Active` / `Paused` | `Active` |
+
+### Tab 6: `Habit_Logs` — Daily Completion Log
+`log_id`, `habit_id`, `date`, `time_spent`, `notes`, `inserted_by`
 
 ---
 
 ## 🚀 Setup & Installation
 
 ### 1. Prerequisites
-- An active **[n8n](https://n8n.io/)** instance
+- An active **n8n** instance
 - A **Telegram Bot Token** from [@BotFather](https://t.me/botfather)
 - A **Google Gemini API Key** from [Google AI Studio](https://aistudio.google.com/)
-- A **Google Sheets** document with 4 tabs configured (see schemas above)
+- A **Google Sheets** document
 
 ---
 
-### 2. Create Your Google Sheets Tabs
-
-In your spreadsheet, create 4 tabs with these exact names and headers in **Row 1**:
-
-| Tab Name | Headers (in order) |
-|---|---|
-| `Sheet1` | `row_id`, `date`, `inserted_by`, `direction`, `transaction_type`, `amount`, `quantity`, `currency`, `entity`, `category`, `item_name`, `payment_method`, `notes`, `status` |
-| `Gym` | `row_id`, `date`, `inserted_by`, `exercise_name`, `muscle_group`, `sets`, `reps`, `weight`, `weight_unit`, `notes`, `status` |
-| `Quran` | `row_id`, `date`, `inserted_by`, `surah_name`, `surah_number`, `start_ayah`, `end_ayah`, `pages_read`, `notes`, `status` |
-| `Tasks` | `row_id`, `date`, `inserted_by`, `task_description`, `priority`, `due_date`, `status` |
-
----
-
-### 3. Configure Credentials in n8n
+### 2. Configure Credentials in n8n
 
 | Credential Type | Used In |
 |---|---|
-| **Google Sheets OAuth2** | All Append / Get / Update / Delete nodes |
-| **Telegram API** | Trigger, Get file, Send message, Edit message nodes |
+| **Google Sheets OAuth2** | All Google Sheets nodes across workflows |
+| **Telegram API** | Trigger, Send message, Edit message nodes |
 | **Google Gemini (PaLM) API** | Message a model, Analyze audio, Analyze an image |
 
 ---
 
-### 4. Import & Link Workflows
+### 3. Import & Activate Workflows
 
-Import in this order:
-
-**A. Sub-workflow 1 — AI Extraction**
-1. Import `Sub-workflow 1 - AI Extraction.json`
-2. Link credentials for: Gemini nodes, Telegram nodes, all 4 Google Sheets Append nodes
-3. Save — note the **Workflow ID**
-
-**B. Sub-workflow 2 — Button Clicks**
-1. Import `Sub-workflow 2 - Button Clicks.json`
-2. Link credentials for: Telegram nodes, all 8 Google Sheets Get/Update/Delete nodes
-3. Save — note the **Workflow ID**
-
-**C. Main Router**
-1. Import `Main Router Workflow.json`
-2. Link **Telegram API** credential in the Trigger node
-3. Point the two Execute Workflow nodes to Sub-workflow 1 and Sub-workflow 2 IDs
-4. Toggle **Active → ON** on all three workflows
+1. **Import `Sub-workflow 1 - AI Extraction.json`** & link credentials.
+2. **Import `Sub-workflow 2 - Button Clicks.json`** & link credentials.
+3. **Import `Sub-workflow 3 - Daily Habits Scheduler.json`** & link credentials.
+4. **Import `Main Router Workflow.json`**, point execute nodes to sub-workflows 1 & 2, and activate.
+5. **One-Click Provisioning:** Open your Telegram bot and send `/setup`.
 
 ---
 
 ## 💡 Usage Examples
 
-### 💰 Log Expenses
+### 🎯 1. Set Up a Daily Recurring Habit
+```text
+عايز أتعلم إنجليزي ربع ساعة كل يوم، فكرني الساعة 8 بالليل
 ```
-اشتريت حليب بـ 20 جنيه وعيش بـ 10 من المخبز
+```text
+I want to practice coding for 30 minutes every day at 19:00
 ```
-```
-I paid 250 EGP for fuel at Total Gas Station with credit card
-```
+- **Bot Reply:**
+  ```text
+  🎯 تم إعداد عادة جديدة:
+  ✨ Learn English
+  ⏱️ المدة اليومية: 15 دقيقة
+  ⏰ وقت التذكير: 20:00
+  🔁 التكرار: يومياً
+  
+  [ ✅ تأكيد ]   [ ❌ إلغاء ]
+  ```
 
-### 🏋️ Log Gym Session
-```
-اليوم في الجيم: bench press 4 سيت × 10 تكرار 80 كيلو، squats 3 سيت × 8 تكرار 100 كيلو
-```
-```
-Did 4 sets of pull-ups and 3 sets of dips bodyweight
-```
+---
 
-### 📖 Log Quran Reading
-```
-قرأت سورة الكهف من الآية 1 للآية 110، حوالي 10 صفحات
-```
-```
-ورد اليوم: سورة البقرة من 1 لـ 50
-```
+### ⏰ 2. Automated Daily Check-in & Streak Celebration
+At 8:00 PM, the bot automatically sends:
+```text
+🎯 حان وقت عاداتك لليوم (الساعة 20:00):
 
-### ✅ Log a Task
+1. ✨ Learn English (15 دقيقة) — Streak: 11 🔥
+
+[ ✅ أنجزت: Learn English ]
+[ ⏳ تأجيل التذكير ساعة ]
 ```
-مهمة: مراجعة تقرير الشغل، أولوية عالية، يوم الخميس
-```
-```
-reminder: call the doctor tomorrow, high priority
+When you tap **`[ ✅ أنجزت: Learn English ]`**:
+```text
+✅ عاش جداً! تم تسجيل 15 دقيقة لـ (Learn English) لليوم.
+🔥 الـ Streak الحالي: 12 يوم متواصل!
+⏱️ إجمالي ما أنجزته: 180 دقيقة
 ```
 
 ---
 
-### Confirmation Flow
-
-After any input, the bot replies with a categorized summary:
-
+### ⚡ 3. Natural Language & Voice Check-off
+You can also complete habits by typing or sending a voice note:
+```text
+خلصت الـ 15 دقيقة إنجليزي اليوم
 ```
-🏋️ ملخص التمرين:
-
-1. Bench Press (Chest) — 4 سيت × 10 تكرار — 80 kg
-2. Squats (Legs) — 3 سيت × 8 تكرار — 100 kg
-
-[ ✅ تأكيد ]  [ ❌ إلغاء ]
-```
-
-| Action | Sheet Effect | Telegram Reply |
-|---|---|---|
-| **✅ تأكيد** | `status` → `Confirmed` in correct tab | `✅ تم حفظ تمرين اليوم بنجاح! 💪` |
-| **❌ إلغاء** | Row(s) deleted | `تم إلغاء العملية بنجاح ❌` |
-
-The confirmation message is **category-aware** — each category shows a different emoji and message.
+- **Bot Reply:**
+  `✅ عاش جداً يا بطل! تم تسجيل إنجاز عادة (Learn English) لليوم بنجاح! 💪`
 
 ---
 
-## 🛡️ Built-in Resilience
+### 📋 4. Plan a Complex Task with WBS
+```text
+عايز أجهز بريزنتيشن لاجتماع الإدارة الأسبوع الجاي
+```
+- **Bot Reply:**
+  ```text
+  ✅ ملخص المهام:
 
-- **Batch Tracking:** Multiple items (e.g., 5 exercises) share the same `row_id` — one confirm button handles all of them
-- **Clarification Routing:** If Gemini can't parse the input, it sends a clarification question instead of inserting bad data
-- **Category Isolation:** Each category routes to its own sheet tab — no cross-contamination
-- **Callback Integrity:** Callback data format `confirm__Expense__rowId` (double-underscore) prevents parsing ambiguity
-- **JSON Cleanup:** Code nodes strip markdown code blocks and guarantee a clean array output
+  🎯 تجهيز بريزنتيشن لاجتماع الإدارة
+  ⚡ الأولوية: High
+  ⏱️ الوقت المقدر: 135 دقيقة
+
+  📌 الخطوات المقترحة (WBS):
+  1. [ ] جمع بيانات وتحليل أرقام الربع الأول (45 د)
+  2. [ ] تصميم الشرائح وتلخيص النقاط الرئيسية (60 د)
+  3. [ ] مراجعة العرض والبروفة النهائية (30 د)
+
+  [ ✅ تأكيد ]   [ ❌ إلغاء ]
+  ```
+
+---
+
+### 📅 5. Daily Dashboard (`/today`)
+Send `/today` to get a consolidated overview of your progress:
+```text
+📅 لوحة إنجاز اليوم (2026-09-03):
+
+🔥 عاداتك اليومية:
+1. Learn English — ✅ منجز (Streak: 12 🔥)
+2. تمارين الإطالة — ⏳ متبقي
+
+💡 لإنجاز عادة أرسل: "خلصت تمارين الإطالة اليوم"
+```
+
+---
+
+## 🛡️ Built-in Resilience & Edge-Case Protection
+
+- **Ghost Chat ID Protection:** Numeric `telegram_chat_id` is automatically recorded during habit setup so background crons always know who to ping.
+- **Idempotent Streak Logic:** Tapping `[ ✅ أنجزت ]` twice on the same day acknowledges completion without incrementing the streak again.
+- **Stateless Snooze:** Snoozing writes `snooze_until` directly to Sheets, surviving server/container reboots.
+- **Atomic Errand Protection:** Simple errands (`"اشتري عيش"`) are logged as single tasks; only complex projects trigger WBS subtasks.
+- **Smart Notification Batching:** Multiple habits due at the same hour are sent together in a single card, avoiding notification spam and Telegram rate limits.
 
 ---
 

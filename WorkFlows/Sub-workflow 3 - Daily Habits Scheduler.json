@@ -1,0 +1,160 @@
+{
+  "name": "Sub-workflow 3 - Daily Habits Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        0
+      ],
+      "id": "dd000000-0000-0000-0000-000000000001",
+      "name": "Hourly Scanner Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "Active"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "dd000000-0000-0000-0000-000000000002",
+      "name": "Get Active Habits",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nif (!items.length || !items[0].json || !items[0].json.habit_id) {\n    return [];\n}\n\nconst now = new Date();\n// Cairo/KSA local hour (UTC+3)\nconst localHour = (now.getUTCHours() + 3) % 24;\nconst currentHourStr = `${String(localHour).padStart(2, '0')}:00`;\nconst todayStr = now.toISOString().split('T')[0];\n\n// Filter habits due at current hour that have not been logged today\nconst dueHabits = items.map(i => i.json).filter(h => {\n    const reminder = (h.reminder_time || '').trim();\n    const snooze = (h.snooze_until || '').trim();\n    const isDue = (reminder === currentHourStr || snooze === currentHourStr);\n    const notDoneToday = (h.last_completed_date !== todayStr);\n    return isDue && notDoneToday;\n});\n\nif (dueHabits.length === 0) {\n    return [];\n}\n\n// Group by telegram_chat_id for Smart Batching\nconst userGroups = {};\ndueHabits.forEach(h => {\n    const chatId = h.telegram_chat_id;\n    if (!chatId) return;\n    if (!userGroups[chatId]) userGroups[chatId] = [];\n    userGroups[chatId].push(h);\n});\n\nconst output = [];\n\nfor (const [chatId, habits] of Object.entries(userGroups)) {\n    let text = `🎯 *حان وقت عاداتك لليوم (الساعة ${currentHourStr}):*\\n\\n`;\n    const keyboardRows = [];\n\n    habits.forEach((h, idx) => {\n        const streak = h.current_streak ? ` — Streak: ${h.current_streak} 🔥` : '';\n        text += `${idx + 1}. ✨ *${h.habit_name}* (${h.target_minutes || 15} دقيقة)${streak}\\n`;\n        keyboardRows.push({\n            row: {\n                buttons: [\n                    {\n                        text: `✅ أنجزت: ${h.habit_name}`,\n                        additionalFields: {\n                            callback_data: `done_habit__${h.habit_id}`\n                        }\n                    }\n                ]\n            }\n        });\n    });\n\n    // General snooze row\n    keyboardRows.push({\n        row: {\n            buttons: [\n                {\n                    text: `⏳ تأجيل التذكير ساعة`,\n                    additionalFields: {\n                        callback_data: `snooze__${habits[0].habit_id}`\n                    }\n                }\n            ]\n        }\n    });\n\n    output.push({\n        json: {\n            chat_id: chatId,\n            message_text: text,\n            keyboard_rows: keyboardRows\n        }\n    });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "dd000000-0000-0000-0000-000000000003",
+      "name": "Code - Filter and Batch Habits"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.message_text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": "={{ $json.keyboard_rows }}"
+        },
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        0
+      ],
+      "id": "dd000000-0000-0000-0000-000000000004",
+      "name": "Send Batched Habit Card",
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb3",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Hourly Scanner Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Active Habits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Habits": {
+      "main": [
+        [
+          {
+            "node": "Code - Filter and Batch Habits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Filter and Batch Habits": {
+      "main": [
+        [
+          {
+            "node": "Send Batched Habit Card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Batched Habit Card": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "life-os-v3-sub3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "607c5f893829d27f4d8318b7189f3b509dcc8d0109d9791972a74e1ebe2d91d3"
+  },
+  "nodeGroups": [],
+  "id": "SubWorkflow3Scheduler",
+  "tags": []
+}

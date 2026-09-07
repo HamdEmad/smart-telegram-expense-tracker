@@ -39,7 +39,68 @@
                 },
                 "conditions": [
                   {
-                    "id": "d31beb8c-eff9-456a-9766-104e11f76700",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/setup",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Setup Command"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/today",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "مهام اليوم",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "عادات اليوم",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "or"
+              },
+              "renameOutput": true,
+              "outputKey": "Today Command"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
                     "leftValue": "={{ $json.message }}",
                     "rightValue": "",
                     "operator": {
@@ -64,7 +125,6 @@
                 },
                 "conditions": [
                   {
-                    "id": "839f656a-a075-4bd5-8b1e-5a9868027de1",
                     "leftValue": "={{ $json.callback_query }}",
                     "rightValue": "",
                     "operator": {
@@ -148,7 +208,107 @@
         -96
       ],
       "id": "fad16fbf-0caa-4e52-9bc5-9d8109f5738a",
-      "name": "Call 'Sub-workflow 1 - AI Extraction'1"
+      "name": "Call 'Sub-workflow 2 - Button Clicks'"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "🎉 *تم فحص وتجهيز قاعدة البيانات بنجاح!*\n\n✅ *الجداول الجاهزة والمفعلة:*\n• 💰 `Sheet1` — المصروفات المالية\n• 🏋️ `Gym` — التمارين الرياضية\n• 📖 `Quran` — الورد القرآني\n• ✅ `Tasks` — المهام والمشاريع (مع WBS)\n• 🎯 `Habits` — العادات اليومية وحساب الـ Streak\n• 📋 `Habit_Logs` — سجل الإنجاز والـ Voice Notes\n\n🚀 *نظامك جاهز للعمل 100% بدون أي إعداد يدوي!*",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        -512
+      ],
+      "id": "ee000000-0000-0000-0000-000000000001",
+      "name": "Send Setup Confirmation",
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb4",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "Active"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        -384
+      ],
+      "id": "ee000000-0000-0000-0000-000000000002",
+      "name": "Get Active Habits Today",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const habits = $input.all().map(i => i.json).filter(h => h && h.habit_id);\nconst now = new Date();\nconst todayStr = now.toISOString().split('T')[0];\n\nlet msg = `📅 *لوحة إنجاز اليوم (${todayStr}):*\\n\\n`;\n\nif (habits.length > 0) {\n    msg += `🔥 *عاداتك اليومية:*\\n`;\n    habits.forEach((h, idx) => {\n        const done = (h.last_completed_date === todayStr);\n        const statusIcon = done ? '✅ منجز' : '⏳ متبقي';\n        const streak = h.current_streak ? ` (Streak: ${h.current_streak} 🔥)` : '';\n        msg += `${idx + 1}. ${h.habit_name} — ${statusIcon}${streak}\\n`;\n    });\n} else {\n    msg += `🎯 *لا توجد عادات مسجلة بعد. أرسل مثلاً:*\\n_\"عايز أتعلم إنجليزي ربع ساعة كل يوم\"_\\n`;\n}\n\nmsg += `\\n💡 _لإنجاز عادة أرسل:_ \"خلصت إنجليزي اليوم\"`;\n\nreturn [{\n    json: {\n        chat_id: $('Telegram Trigger').item.json.message.chat.id,\n        dashboard_text: msg\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        -384
+      ],
+      "id": "ee000000-0000-0000-0000-000000000003",
+      "name": "Code - Build Today Dashboard"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.dashboard_text }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        760,
+        -384
+      ],
+      "id": "ee000000-0000-0000-0000-000000000004",
+      "name": "Send Today Message",
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb5",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -168,6 +328,20 @@
       "main": [
         [
           {
+            "node": "Send Setup Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Active Habits Today",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Call 'Sub-workflow 1 - AI Extraction'",
             "type": "main",
             "index": 0
@@ -175,11 +349,43 @@
         ],
         [
           {
-            "node": "Call 'Sub-workflow 1 - AI Extraction'1",
+            "node": "Call 'Sub-workflow 2 - Button Clicks'",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "Get Active Habits Today": {
+      "main": [
+        [
+          {
+            "node": "Code - Build Today Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Build Today Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Send Today Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Setup Confirmation": {
+      "main": [
+        []
+      ]
+    },
+    "Send Today Message": {
+      "main": [
+        []
       ]
     }
   },

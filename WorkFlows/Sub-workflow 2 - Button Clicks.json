@@ -7,7 +7,10 @@
       },
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.2,
-      "position": [-656, 32],
+      "position": [
+        -656,
+        32
+      ],
       "id": "ca9fd35b-d4d0-49bc-b865-86ece7c64603",
       "name": "When Executed by Another Workflow"
     },
@@ -19,19 +22,30 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [-432, 32],
+      "position": [
+        -432,
+        32
+      ],
       "id": "22229cdd-6795-4239-84f6-a15f6be6fedd",
       "name": "Answer Query a callback",
       "webhookId": "7e5f27b3-25bb-41ac-9b6a-2dde8971e0cd",
-      "credentials": {"telegramApi": {"id": "HigQWEeF62DPQciI", "name": "Telegram account"}}
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "const inputJson = $('When Executed by Another Workflow').first().json;\n\nif (!inputJson.callback_query || !inputJson.callback_query.data) {\n    throw new Error(\"لم يتم العثور على بيانات الزر في العقدة الأولى.\");\n}\n\n// البيانات القادمة: \"confirm__Expense__exec-id-123\"\nconst rawData = inputJson.callback_query.data;\nconst parts = rawData.split('__');\n\nif (parts.length < 3) {\n    throw new Error(\"صيغة بيانات الزر غير صحيحة: \" + rawData);\n}\n\nconst actionName = parts[0];   // \"confirm\" أو \"cancel\"\nconst recordType = parts[1];   // \"Expense\", \"Gym\", \"Quran\", \"Task\"\nconst rowId = parts[2];        // execution id\n\nreturn {\n    json: {\n        action: actionName,\n        record_type: recordType,\n        row_id: rowId\n    }\n};"
+        "jsCode": "const inputJson = $('When Executed by Another Workflow').first().json;\n\nif (!inputJson.callback_query || !inputJson.callback_query.data) {\n    throw new Error(\"لم يتم العثور على بيانات الزر في العقدة الأولى.\");\n}\n\nconst rawData = inputJson.callback_query.data;\nconst parts = rawData.split('__');\n\nconst actionName = parts[0];\n\nreturn {\n    json: {\n        action: actionName,\n        record_type: parts[1] || \"\",\n        row_id: parts[2] || parts[1] || \"\",\n        habit_id: (actionName === 'done_habit' || actionName === 'snooze') ? parts[1] : \"\",\n        task_id: (actionName === 'done_task') ? parts[1] : \"\",\n        raw_data: rawData\n    }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [-208, 32],
+      "position": [
+        -208,
+        32
+      ],
       "id": "a12cdd14-29da-41ca-9c27-75b1a4bfa419",
       "name": "Code in JavaScript1"
     },
@@ -41,8 +55,23 @@
           "values": [
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.action }}", "rightValue": "confirm", "operator": {"type": "string", "operation": "equals"}, "id": "d74f7912-f9bb-47a5-ba1f-1ffa80d501b8"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "confirm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "act-confirm-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -50,12 +79,75 @@
             },
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"id": "41a91afc-bbd4-4fae-837d-eb318004f9ef", "leftValue": "={{ $json.action }}", "rightValue": "cancel", "operator": {"type": "string", "operation": "equals", "name": "filter.operator.equals"}}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "cancel",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "act-cancel-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "cancel"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "done_habit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "act-donehabit-001"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "done_habit"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "snooze",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "act-snooze-001"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "snooze"
             }
           ]
         },
@@ -63,7 +155,10 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
-      "position": [16, 32],
+      "position": [
+        16,
+        32
+      ],
       "id": "3c3cd3ae-f50e-4616-af54-a645cfc2d564",
       "name": "Switch"
     },
@@ -73,8 +168,23 @@
           "values": [
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Expense", "operator": {"type": "string", "operation": "equals"}, "id": "conf-exp-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "conf-exp-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -82,8 +192,23 @@
             },
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Gym", "operator": {"type": "string", "operation": "equals"}, "id": "conf-gym-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Gym",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "conf-gym-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -91,8 +216,23 @@
             },
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Quran", "operator": {"type": "string", "operation": "equals"}, "id": "conf-quran-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Quran",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "conf-quran-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -100,12 +240,51 @@
             },
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Task", "operator": {"type": "string", "operation": "equals"}, "id": "conf-task-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Task",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "conf-task-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "Task"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Habit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "conf-habit-001"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Habit"
             }
           ]
         },
@@ -113,7 +292,10 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
-      "position": [240, -128],
+      "position": [
+        240,
+        -128
+      ],
       "id": "bb000000-0000-0000-0000-000000000001",
       "name": "Category Switch Confirm"
     },
@@ -123,8 +305,23 @@
           "values": [
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Expense", "operator": {"type": "string", "operation": "equals"}, "id": "canc-exp-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "canc-exp-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -132,8 +329,23 @@
             },
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Gym", "operator": {"type": "string", "operation": "equals"}, "id": "canc-gym-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Gym",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "canc-gym-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -141,8 +353,23 @@
             },
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Quran", "operator": {"type": "string", "operation": "equals"}, "id": "canc-quran-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Quran",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "canc-quran-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
@@ -150,12 +377,51 @@
             },
             {
               "conditions": {
-                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 3},
-                "conditions": [{"leftValue": "={{ $json.record_type }}", "rightValue": "Task", "operator": {"type": "string", "operation": "equals"}, "id": "canc-task-001"}],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Task",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "canc-task-001"
+                  }
+                ],
                 "combinator": "and"
               },
               "renameOutput": true,
               "outputKey": "Task"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.record_type }}",
+                    "rightValue": "Habit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "canc-habit-001"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Habit"
             }
           ]
         },
@@ -163,79 +429,235 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
-      "position": [240, 192],
+      "position": [
+        240,
+        192
+      ],
       "id": "bb000000-0000-0000-0000-000000000002",
       "name": "Category Switch Cancel"
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, -320],
+      "position": [
+        480,
+        -320
+      ],
       "id": "bb000000-0000-0000-0000-000000000003",
       "name": "Get Expense Rows Confirm",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=1067827227", "mode": "list", "cachedResultName": "Gym", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=1067827227",
+          "mode": "list",
+          "cachedResultName": "Gym",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, -192],
+      "position": [
+        480,
+        -192
+      ],
       "id": "bb000000-0000-0000-0000-000000000004",
       "name": "Get Gym Rows Confirm",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=997258062", "mode": "list", "cachedResultName": "Quran", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=997258062",
+          "mode": "list",
+          "cachedResultName": "Quran",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, -64],
+      "position": [
+        480,
+        -64
+      ],
       "id": "bb000000-0000-0000-0000-000000000005",
       "name": "Get Quran Rows Confirm",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=840579677", "mode": "list", "cachedResultName": "Tasks", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=840579677",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, 64],
+      "position": [
+        480,
+        64
+      ],
       "id": "bb000000-0000-0000-0000-000000000006",
       "name": "Get Tasks Rows Confirm",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "update",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {"status": "Confirmed", "row_number": "={{ $json.row_number }}"},
-          "matchingColumns": ["row_number"],
+          "value": {
+            "status": "Confirmed",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
           "schema": [
-            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "row_number", "displayName": "row_number", "required": false, "defaultMatch": false, "display": true, "type": "number", "canBeUsedToMatch": true, "readOnly": true, "removed": false}
+            {
+              "id": "row_id",
+              "displayName": "row_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -244,24 +666,77 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, -320],
+      "position": [
+        720,
+        -320
+      ],
       "id": "bb000000-0000-0000-0000-000000000007",
       "name": "Update Expense Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "update",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=1067827227", "mode": "list", "cachedResultName": "Gym", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=1067827227",
+          "mode": "list",
+          "cachedResultName": "Gym",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"
+        },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {"status": "Confirmed", "row_number": "={{ $json.row_number }}"},
-          "matchingColumns": ["row_number"],
+          "value": {
+            "status": "Confirmed",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
           "schema": [
-            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "row_number", "displayName": "row_number", "required": false, "defaultMatch": false, "display": true, "type": "number", "canBeUsedToMatch": true, "readOnly": true, "removed": false}
+            {
+              "id": "row_id",
+              "displayName": "row_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -270,24 +745,77 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, -192],
+      "position": [
+        720,
+        -192
+      ],
       "id": "bb000000-0000-0000-0000-000000000008",
       "name": "Update Gym Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "update",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=997258062", "mode": "list", "cachedResultName": "Quran", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=997258062",
+          "mode": "list",
+          "cachedResultName": "Quran",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"
+        },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {"status": "Confirmed", "row_number": "={{ $json.row_number }}"},
-          "matchingColumns": ["row_number"],
+          "value": {
+            "status": "Confirmed",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
           "schema": [
-            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "row_number", "displayName": "row_number", "required": false, "defaultMatch": false, "display": true, "type": "number", "canBeUsedToMatch": true, "readOnly": true, "removed": false}
+            {
+              "id": "row_id",
+              "displayName": "row_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -296,24 +824,77 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, -64],
+      "position": [
+        720,
+        -64
+      ],
       "id": "bb000000-0000-0000-0000-000000000009",
       "name": "Update Quran Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "update",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=840579677", "mode": "list", "cachedResultName": "Tasks", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=840579677",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"
+        },
         "columns": {
           "mappingMode": "defineBelow",
-          "value": {"status": "Confirmed", "row_number": "={{ $json.row_number }}"},
-          "matchingColumns": ["row_number"],
+          "value": {
+            "status": "Confirmed",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
           "schema": [
-            {"id": "row_id", "displayName": "row_id", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "status", "displayName": "status", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true, "removed": false},
-            {"id": "row_number", "displayName": "row_number", "required": false, "defaultMatch": false, "display": true, "type": "number", "canBeUsedToMatch": true, "readOnly": true, "removed": false}
+            {
+              "id": "row_id",
+              "displayName": "row_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
@@ -322,142 +903,346 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, 64],
+      "position": [
+        720,
+        64
+      ],
       "id": "bb000000-0000-0000-0000-000000000010",
       "name": "Update Tasks Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "editMessageText",
         "chatId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.chat.id }}",
         "messageId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.message_id }}",
-        "text": "={{ $('Code in JavaScript1').item.json.record_type === 'Expense' ? '✅ تم تأكيد وحفظ المعاملة المالية بنجاح! 💰' : $('Code in JavaScript1').item.json.record_type === 'Gym' ? '✅ تم حفظ تمرين اليوم بنجاح! 💪' : $('Code in JavaScript1').item.json.record_type === 'Quran' ? '✅ تم تسجيل ورد القرآن بنجاح! 📖' : '✅ تم حفظ المهمة بنجاح! ✔️' }}",
+        "text": "={{ $('Code in JavaScript1').item.json.record_type === 'Expense' ? '✅ تم تأكيد وحفظ المعاملة المالية بنجاح! 💰' : $('Code in JavaScript1').item.json.record_type === 'Gym' ? '✅ تم حفظ تمرين اليوم بنجاح! 💪' : $('Code in JavaScript1').item.json.record_type === 'Quran' ? '✅ تم تسجيل ورد القرآن بنجاح! 📖' : $('Code in JavaScript1').item.json.record_type === 'Habit' ? '✅ تم تفعيل العادة اليومية والتذكير الآلي بنجاح! 🎯🔥' : '✅ تم حفظ المهمة بنجاح! ✔️' }}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [960, -128],
+      "position": [
+        960,
+        -128
+      ],
       "id": "6e09bbe7-1daf-48d8-9827-4f3753fa04ef",
       "name": "Edit a text message",
       "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0",
-      "credentials": {"telegramApi": {"id": "HigQWEeF62DPQciI", "name": "Telegram account"}}
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, 192],
+      "position": [
+        480,
+        192
+      ],
       "id": "bb000000-0000-0000-0000-000000000011",
       "name": "Get Expense Rows Cancel",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=1067827227", "mode": "list", "cachedResultName": "Gym", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=1067827227",
+          "mode": "list",
+          "cachedResultName": "Gym",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, 320],
+      "position": [
+        480,
+        320
+      ],
       "id": "bb000000-0000-0000-0000-000000000012",
       "name": "Get Gym Rows Cancel",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=997258062", "mode": "list", "cachedResultName": "Quran", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=997258062",
+          "mode": "list",
+          "cachedResultName": "Quran",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, 448],
+      "position": [
+        480,
+        448
+      ],
       "id": "bb000000-0000-0000-0000-000000000013",
       "name": "Get Quran Rows Cancel",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=840579677", "mode": "list", "cachedResultName": "Tasks", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"},
-        "filtersUI": {"values": [{"lookupColumn": "row_id", "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"}]},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=840579677",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "row_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [480, 576],
+      "position": [
+        480,
+        576
+      ],
       "id": "bb000000-0000-0000-0000-000000000014",
       "name": "Get Tasks Rows Cancel",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "delete",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=0", "mode": "list", "cachedResultName": "Sheet1", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=0"
+        },
         "startIndex": "={{ $json.row_number }}",
         "numberToDelete": 1
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, 192],
+      "position": [
+        720,
+        192
+      ],
       "id": "bb000000-0000-0000-0000-000000000015",
       "name": "Delete Expense Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "delete",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=1067827227", "mode": "list", "cachedResultName": "Gym", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=1067827227",
+          "mode": "list",
+          "cachedResultName": "Gym",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=1067827227"
+        },
         "startIndex": "={{ $json.row_number }}",
         "numberToDelete": 1
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, 320],
+      "position": [
+        720,
+        320
+      ],
       "id": "bb000000-0000-0000-0000-000000000016",
       "name": "Delete Gym Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "delete",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=997258062", "mode": "list", "cachedResultName": "Quran", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=997258062",
+          "mode": "list",
+          "cachedResultName": "Quran",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=997258062"
+        },
         "startIndex": "={{ $json.row_number }}",
         "numberToDelete": 1
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, 448],
+      "position": [
+        720,
+        448
+      ],
       "id": "bb000000-0000-0000-0000-000000000017",
       "name": "Delete Quran Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
         "operation": "delete",
-        "documentId": {"__rl": true, "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg", "mode": "list", "cachedResultName": "n8n_sheet", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"},
-        "sheetName": {"__rl": true, "value": "gid=840579677", "mode": "list", "cachedResultName": "Tasks", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"},
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=840579677",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit#gid=840579677"
+        },
         "startIndex": "={{ $json.row_number }}",
         "numberToDelete": 1
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
-      "position": [720, 576],
+      "position": [
+        720,
+        576
+      ],
       "id": "bb000000-0000-0000-0000-000000000018",
       "name": "Delete Tasks Row",
-      "credentials": {"googleSheetsOAuth2Api": {"id": "yqwAUhA2ye1gJcsG", "name": "Google Sheets account"}}
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
     },
     {
       "parameters": {
@@ -469,99 +1254,1087 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [960, 384],
+      "position": [
+        960,
+        384
+      ],
       "id": "e6179134-c07c-4f15-9cf3-22b87feff29c",
       "name": "Edit a text message1",
       "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb0",
-      "credentials": {"telegramApi": {"id": "HigQWEeF62DPQciI", "name": "Telegram account"}}
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "habit_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        128
+      ],
+      "id": "cc000000-0000-0000-0000-000000000001",
+      "name": "Get Habit Rows Confirm",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "Active",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "habit_id",
+              "displayName": "habit_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        128
+      ],
+      "id": "cc000000-0000-0000-0000-000000000002",
+      "name": "Update Habit Row",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "habit_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.row_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        704
+      ],
+      "id": "cc000000-0000-0000-0000-000000000003",
+      "name": "Get Habit Rows Cancel",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "startIndex": "={{ $json.row_number }}",
+        "numberToDelete": 1
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        704
+      ],
+      "id": "cc000000-0000-0000-0000-000000000004",
+      "name": "Delete Habit Row",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "habit_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.habit_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        896
+      ],
+      "id": "cc000000-0000-0000-0000-000000000005",
+      "name": "Get Habit By ID Done",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const habit = $input.first().json;\nconst now = new Date();\nconst today = now.toISOString().split('T')[0];\n\nconst yesterdayDate = new Date(now);\nyesterdayDate.setDate(yesterdayDate.getDate() - 1);\nconst yesterday = yesterdayDate.toISOString().split('T')[0];\n\nlet currentStreak = Number(habit.current_streak) || 0;\nlet bestStreak = Number(habit.best_streak) || 0;\nlet alreadyDone = false;\n\nif (habit.last_completed_date === today) {\n    alreadyDone = true;\n} else if (habit.last_completed_date === yesterday) {\n    currentStreak += 1;\n} else {\n    currentStreak = 1;\n}\n\nif (currentStreak > bestStreak) {\n    bestStreak = currentStreak;\n}\n\nconst targetMin = Number(habit.target_minutes) || 15;\nconst totalMinutes = currentStreak * targetMin;\n\nreturn [{\n    json: {\n        row_number: habit.row_number,\n        habit_id: habit.habit_id,\n        habit_name: habit.habit_name,\n        target_minutes: targetMin,\n        current_streak: currentStreak,\n        best_streak: bestStreak,\n        last_completed_date: today,\n        snooze_until: \"\",\n        already_done: alreadyDone,\n        total_minutes: totalMinutes,\n        inserted_by: habit.inserted_by || \"User\"\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        896
+      ],
+      "id": "cc000000-0000-0000-0000-000000000006",
+      "name": "Code - Calculate Habit Streak"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "current_streak": "={{ $json.current_streak }}",
+            "best_streak": "={{ $json.best_streak }}",
+            "last_completed_date": "={{ $json.last_completed_date }}",
+            "snooze_until": "",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "current_streak",
+              "displayName": "current_streak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "best_streak",
+              "displayName": "best_streak",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_completed_date",
+              "displayName": "last_completed_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "snooze_until",
+              "displayName": "snooze_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        896
+      ],
+      "id": "cc000000-0000-0000-0000-000000000007",
+      "name": "Update Habit Streak",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habit_Logs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "log_id": "=LOG-{{ $execution.id ? $execution.id.slice(-4) : Math.random().toString(36).substring(2,6) }}",
+            "habit_id": "={{ $json.habit_id }}",
+            "date": "={{ $json.last_completed_date }}",
+            "time_spent": "={{ $json.target_minutes }}",
+            "notes": "Daily Habit Check-in via Telegram",
+            "inserted_by": "={{ $json.inserted_by }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "habit_id",
+              "displayName": "habit_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "time_spent",
+              "displayName": "time_spent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "inserted_by",
+              "displayName": "inserted_by",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        960,
+        896
+      ],
+      "id": "cc000000-0000-0000-0000-000000000008",
+      "name": "Append Habit Log Done",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.chat.id }}",
+        "messageId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.message_id }}",
+        "text": "={{ $('Code - Calculate Habit Streak').item.json.already_done ? `🌟 لقد سجلت إنجاز عادة (${$('Code - Calculate Habit Streak').item.json.habit_name}) لليوم بالفعل! استمر يا بطل! 💪` : `✅ عاش جداً! تم تسجيل ${$('Code - Calculate Habit Streak').item.json.target_minutes} دقيقة لـ (${$('Code - Calculate Habit Streak').item.json.habit_name}) لليوم.\\n🔥 الـ Streak الحالي: ${$('Code - Calculate Habit Streak').item.json.current_streak} يوم متواصل!\\n⏱️ إجمالي ما أنجزته: ${$('Code - Calculate Habit Streak').item.json.total_minutes} دقيقة` }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        896
+      ],
+      "id": "cc000000-0000-0000-0000-000000000009",
+      "name": "Edit Done Habit Message",
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb1",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "habit_id",
+              "lookupValue": "={{ $('Code in JavaScript1').item.json.habit_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        1088
+      ],
+      "id": "cc000000-0000-0000-0000-000000000010",
+      "name": "Get Habit For Snooze",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const habit = $input.first().json;\nconst now = new Date();\nconst currentHour = (now.getUTCHours() + 3) % 24;\nconst nextHour = (currentHour + 1) % 24;\nconst snoozeStr = `${String(nextHour).padStart(2, '0')}:00`;\n\nreturn [{\n    json: {\n        row_number: habit.row_number,\n        habit_id: habit.habit_id,\n        habit_name: habit.habit_name,\n        snooze_until: snoozeStr\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        1088
+      ],
+      "id": "cc000000-0000-0000-0000-000000000011",
+      "name": "Code - Calculate Snooze"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg",
+          "mode": "list",
+          "cachedResultName": "n8n_sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ypShfdtubz59gBdwxebq1VVY0DIWK6CkkZpjhY5u-kg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Habits",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "snooze_until": "={{ $json.snooze_until }}",
+            "row_number": "={{ $json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "snooze_until",
+              "displayName": "snooze_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        1088
+      ],
+      "id": "cc000000-0000-0000-0000-000000000012",
+      "name": "Update Habit Snooze",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yqwAUhA2ye1gJcsG",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.chat.id }}",
+        "messageId": "={{ $item(0).$node[\"When Executed by Another Workflow\"].json.callback_query.message.message_id }}",
+        "text": "=⏰ تم تأجيل تذكير ({{ $('Code - Calculate Snooze').item.json.habit_name }}) لمدة ساعة بنجاح! سنذكرك في تمام الساعة {{ $('Code - Calculate Snooze').item.json.snooze_until }}.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        1088
+      ],
+      "id": "cc000000-0000-0000-0000-000000000013",
+      "name": "Edit Snooze Message",
+      "webhookId": "e64f6635-b829-481b-8127-be062d4fcdb2",
+      "credentials": {
+        "telegramApi": {
+          "id": "HigQWEeF62DPQciI",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
     "When Executed by Another Workflow": {
-      "main": [[{"node": "Answer Query a callback", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Answer Query a callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Answer Query a callback": {
-      "main": [[{"node": "Code in JavaScript1", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Code in JavaScript1": {
-      "main": [[{"node": "Switch", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Switch": {
       "main": [
-        [{"node": "Category Switch Confirm", "type": "main", "index": 0}],
-        [{"node": "Category Switch Cancel", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Category Switch Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Category Switch Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Habit By ID Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Habit For Snooze",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Category Switch Confirm": {
       "main": [
-        [{"node": "Get Expense Rows Confirm", "type": "main", "index": 0}],
-        [{"node": "Get Gym Rows Confirm", "type": "main", "index": 0}],
-        [{"node": "Get Quran Rows Confirm", "type": "main", "index": 0}],
-        [{"node": "Get Tasks Rows Confirm", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Get Expense Rows Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Gym Rows Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Quran Rows Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Tasks Rows Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Habit Rows Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Category Switch Cancel": {
       "main": [
-        [{"node": "Get Expense Rows Cancel", "type": "main", "index": 0}],
-        [{"node": "Get Gym Rows Cancel", "type": "main", "index": 0}],
-        [{"node": "Get Quran Rows Cancel", "type": "main", "index": 0}],
-        [{"node": "Get Tasks Rows Cancel", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Get Expense Rows Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Gym Rows Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Quran Rows Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Tasks Rows Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Habit Rows Cancel",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Get Expense Rows Confirm": {
-      "main": [[{"node": "Update Expense Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Update Expense Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Gym Rows Confirm": {
-      "main": [[{"node": "Update Gym Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Update Gym Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Quran Rows Confirm": {
-      "main": [[{"node": "Update Quran Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Update Quran Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Tasks Rows Confirm": {
-      "main": [[{"node": "Update Tasks Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Update Tasks Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Update Expense Row": {
-      "main": [[{"node": "Edit a text message", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Update Gym Row": {
-      "main": [[{"node": "Edit a text message", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Update Quran Row": {
-      "main": [[{"node": "Edit a text message", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Update Tasks Row": {
-      "main": [[{"node": "Edit a text message", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Edit a text message": {
-      "main": [[]]
+      "main": [
+        []
+      ]
     },
     "Get Expense Rows Cancel": {
-      "main": [[{"node": "Delete Expense Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Delete Expense Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Gym Rows Cancel": {
-      "main": [[{"node": "Delete Gym Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Delete Gym Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Quran Rows Cancel": {
-      "main": [[{"node": "Delete Quran Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Delete Quran Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Tasks Rows Cancel": {
-      "main": [[{"node": "Delete Tasks Row", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Delete Tasks Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Delete Expense Row": {
-      "main": [[{"node": "Edit a text message1", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Delete Gym Row": {
-      "main": [[{"node": "Edit a text message1", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Delete Quran Row": {
-      "main": [[{"node": "Edit a text message1", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Delete Tasks Row": {
-      "main": [[{"node": "Edit a text message1", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Edit a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Edit a text message1": {
-      "main": [[]]
+      "main": [
+        []
+      ]
+    },
+    "Get Habit Rows Confirm": {
+      "main": [
+        [
+          {
+            "node": "Update Habit Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Habit Row": {
+      "main": [
+        [
+          {
+            "node": "Edit a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Habit Rows Cancel": {
+      "main": [
+        [
+          {
+            "node": "Delete Habit Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Habit Row": {
+      "main": [
+        [
+          {
+            "node": "Edit a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Habit By ID Done": {
+      "main": [
+        [
+          {
+            "node": "Code - Calculate Habit Streak",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Calculate Habit Streak": {
+      "main": [
+        [
+          {
+            "node": "Update Habit Streak",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Habit Streak": {
+      "main": [
+        [
+          {
+            "node": "Append Habit Log Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Habit Log Done": {
+      "main": [
+        [
+          {
+            "node": "Edit Done Habit Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Habit For Snooze": {
+      "main": [
+        [
+          {
+            "node": "Code - Calculate Snooze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Calculate Snooze": {
+      "main": [
+        [
+          {
+            "node": "Update Habit Snooze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Habit Snooze": {
+      "main": [
+        [
+          {
+            "node": "Edit Snooze Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
